@@ -4,9 +4,9 @@ A peer-to-peer lending and rental platform that connects people who want to lend
 
 ## Overview
 
-LendScape is a community-driven marketplace that makes it easy and safe to share resources. Instead of buying items you'll only use occasionally, you can borrow them from neighbors and local community members. Item owners can earn money from things they're not using, while borrowers save money and reduce waste.
+LendScape is a community-driven marketplace that makes it easy and safe to share resources. Instead of buying items you'll only use occasionally, you can borrow them from neighbors and local community members. Item owners can share things they're not using, while borrowers save money and reduce waste.
 
-The platform handles the entire rental process - from browsing and booking to payment and reviews - creating a trusted environment for peer-to-peer transactions.
+The platform handles the entire rental process - from browsing and booking to reviews - creating a trusted environment for peer-to-peer transactions.
 
 ## Features
 
@@ -18,10 +18,10 @@ The platform handles the entire rental process - from browsing and booking to pa
 - **Message Owners** - Communicate directly through the platform
 
 ### For Lenders
-- **List Your Items** - Create listings with photos and rental prices
+- **List Your Items** - Create listings with photos and set availability
 - **Manage Availability** - Set when items are available for rent
 - **Track Orders** - Monitor active and upcoming rentals
-- **Earn Money** - Get paid for items you're not using
+- **Share Resources** - Help your community by lending items you're not using
 - **Build Reputation** - Gain trust through positive reviews
 
 ### Platform Features
