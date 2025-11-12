@@ -72,3 +72,5 @@ htmlcov/
 *.tmp
 *.bak
 *.swp
+
+local_test
