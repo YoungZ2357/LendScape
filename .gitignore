@@ -74,3 +74,4 @@ htmlcov/
 *.swp
 
 local_test
+*.pyc
