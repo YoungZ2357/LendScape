@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, render_template
 from app import db
+from sqlalchemy import or_
 from app.users import users_bp
 from app.models import User, Location
 from decimal import Decimal
@@ -11,24 +12,25 @@ def search_page():
 @users_bp.route('/api/users', methods=['GET'])
 def get_users():
     page = request.args.get('page', 1, type=int)
-    size = request.args.get('size', 20, type=int)
+    size = request.args.get('size', 8, type=int)
 
     kw = request.args.get("search", "", type=str)
 
     query = User.query
     if kw:
         query = query.filter(
-            db.or_(
+            or_(
                 User.firstName.like(f"%{kw}%"),
                 User.lastName.like(f"%{kw}%"),
                 User.email.like(f"%{kw}%")
             )
         )
 
-    pagination = query.paginate(page, size, False)
-
+    pagination = query.paginate(page=page, per_page=size, error_out=False)
+    print(query)
     data = []
     for user in pagination.items:
+        print(user.to_dict())
         user_dict = user.to_dict()
 
         if user.locationId:

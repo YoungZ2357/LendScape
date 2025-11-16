@@ -39,7 +39,7 @@ class User(db.Model):
         name='status'
     )
 
-    def to_dict(self):
+    def to_dict_admin(self):
         return {
             'userId': self.userId,
             'firstName': self.firstName,
@@ -50,11 +50,20 @@ class User(db.Model):
             'userClass': self.userClass.value if self.userClass else None,
             'status': self.status.value if self.status else None
         }
+    def to_dict(self):
+        return {
+            'userId': self.userId,
+            'firstName': self.firstName,
+            'lastName': self.lastName,
+            'email': self.email,
+            'locationId': self.locationId,
+            'userClass': self.userClass.value if self.userClass else None
+        }
 
 
 class Location(db.Model):
     __tablename__ = 'Location'
-    __table_args__ = {'extend_existing': True}
+    __table_args__ = {"extend_existing": True, "schema": "lendscapev1"}
 
     locationId = db.Column('locationid', db.Integer, primary_key=True, autoincrement=True)
     address = db.Column('address', db.Text)

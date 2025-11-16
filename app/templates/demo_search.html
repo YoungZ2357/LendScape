@@ -3,39 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Item Search</title>
-    <style>
-        /* 添加一些基础样式 */
-        .item-card {
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-        }
-
-        .pagination-container {
-            margin: 20px 0;
-        }
-
-        .page-controls button {
-            margin: 0 5px;
-            padding: 5px 10px;
-        }
-
-        .page-controls button.active {
-            background-color: #007bff;
-            color: white;
-        }
-
-        .page-controls button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        #loading {
-            color: #666;
-            font-style: italic;
-        }
-    </style>
 </head>
 
 <body>
@@ -44,7 +11,7 @@
 
     <input id="searchInput" type="text" placeholder="Item Search Demo">
     <button id="searchButton" onclick="makeSearchCommon(1, 8, true)">Search</button>
-    <button id="clearButton" onclick="clearSearch()">Clear search/search without key word</button>
+    <button id="clearButton" onclick="clearSearchItem()">Clear search/search without key word</button>
 
     <div style="margin-top: 30px;">
         <a href="{{ url_for('main.index') }}">Return</a>
@@ -55,7 +22,6 @@
     <div id="pagination"></div>
 </div>
 
-<!-- 修复双尖括号错误 -->
 <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
 <script src="{{ url_for('static', filename='js/items.js') }}"></script>
 <script>
@@ -69,13 +35,9 @@
             }
         });
 
-        // 初始加载数据
         makeSearchCommon(1, 8, false);
     });
 
-    // 这两个函数已经移到 items.js 中作为全局函数
-    // function changePageSize(size) { ... }
-    // function clearSearch() { ... }
 </script>
 </body>
 </html>

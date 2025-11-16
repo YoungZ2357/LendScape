@@ -88,10 +88,8 @@ function displaySearchItem(data) {
 }
 
 
-function clearSearch() {
-    document.getElementById("searchInput").value = "";
-    currentQuery = "";
-    makeSearchCommon(1, currentSize || 8, false);
+function clearSearchItem() {
+    clearSearchCommon(makeSearchCommon)
 }
 
 

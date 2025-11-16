@@ -76,6 +76,7 @@ htmlcov/
 local_test
 *.pyc
 config.py
-config.py
-app/__pycache__/__init__.cpython-310.pyc
+
+/app/__pycache__/__init__.cpython-310.pyc
 /app/__pycache__
+

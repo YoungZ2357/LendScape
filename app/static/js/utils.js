@@ -102,3 +102,9 @@ function generatePageNumbers(current, total) {
 
     return rangeWithDots;
 }
+
+function clearSearchCommon(searchMethod) {
+    document.getElementById("searchInput").value = "";
+    currentQuery = "";
+    searchMethod(1, currentSize || 8, false);
+}
