@@ -44,7 +44,7 @@ def create_item():
     pass
 
 
-@items_bp.route("/search")
+@items_bp.route("/page/items/search")
 def search_page():
     return render_template('demo_search.html')
 

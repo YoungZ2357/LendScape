@@ -16,6 +16,9 @@ def create_app():
     from app.item import items_bp
     app.register_blueprint(items_bp)
 
+    from app.users import users_bp
+    app.register_blueprint(users_bp)
+
     with app.app_context():
         db.create_all()
 
