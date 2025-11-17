@@ -18,14 +18,11 @@ The platform handles the entire rental process - from browsing and booking to re
 
 #### For Borrowers
 
-- # **Browse Local Items** - Search for items available in your area
+- **Browse Local Items** - Search for items available in your area
 
 - **Verified Listings** - See photos, descriptions, and availability
-
 - **Secure Booking** - Reserve items with confirmed pickup/return times
-
 - **User Reviews** - Read ratings and feedback from previous renters
-
 - **Message Owners** - Communicate directly through the platform
 
 #### For Lenders
