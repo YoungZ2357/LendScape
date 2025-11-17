@@ -71,7 +71,7 @@ function displaySearchItem(data) {
 
     data.results.forEach(item => {
         html += `
-        <div class="item-card">
+        <div class="elem-card">
             <h3>Item Name: ${item.itemName}</h3>
             <p>Description: ${item.description}</p>
             <p>Owner ID: ${item.userId}</p>

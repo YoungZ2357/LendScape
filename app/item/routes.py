@@ -48,41 +48,9 @@ def create_item():
 def search_page():
     return render_template('demo_search.html')
 
-@items_bp.route("/api/search_items", methods=["GET"])
-def search_items():
-    query = request.args.get("search", "").strip()
-
-    if not query:
-        return jsonify({
-            "query": "",
-            "count": 0,
-            "results": []
-        })
-
-    results = Item.query.filter(
-        Item.itemName.ilike(f"%{query}%"),
-        Item.is_available == True
-    ).all()
-    print(Item.query.filter(
-        Item.itemName.ilike(f"%{query}%"),
-        Item.is_available == True
-    ))
-    print(results)
-    data = []
-    for item in results:
-        item_dict = item.to_dict()
-        user = User.query.get(item.userId)
-        item_dict['owner_name'] = f"{user.firstName} {user.lastName}" if user else "Unknown"
-
-        data.append(item_dict)
-
-    return jsonify({
-        "query": query,
-        "count": len(data),
-        "results": data
-    })
 
 
+@items_bp.route("/api/items/<int:itemid>", methods=['GET'])
+def get_item_detail(itemid):
 
-
-
+    pass

@@ -5,11 +5,11 @@ from sqlalchemy import Enum
 class UserClass(enum.Enum):
     ACTIVE = 'active'
     INACTIVE = 'inactive'
-    BANNED = 'banned'
+    ADMIN = 'admin'
 
 class UserStatus(enum.Enum):
     ACTIVE = 'active'
-    INACTIVE = 'inactive'
+    DEACTIVATED = 'deactivated'
     BANNED = 'banned'
 
 class StatusType(enum.Enum):
@@ -57,7 +57,8 @@ class User(db.Model):
             'lastName': self.lastName,
             'email': self.email,
             'locationId': self.locationId,
-            'userClass': self.userClass.value if self.userClass else None
+            'userClass': self.userClass.value if self.userClass else None,
+            'status': self.status.value if self.status else None
         }
 
 
@@ -153,6 +154,6 @@ class Review(db.Model):
         }
 
 user_item_association = db.Table('UserItem',
-    db.Column('userId', db.Integer, db.ForeignKey('User.userid'), primary_key=True),
-    db.Column('itemId', db.Integer, db.ForeignKey('Item.itemid'), primary_key=True)
+    db.Column('userid', db.Integer, db.ForeignKey('User.userid'), primary_key=True),
+    db.Column('itemid', db.Integer, db.ForeignKey('Item.itemid'), primary_key=True)
 )

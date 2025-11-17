@@ -1,3 +1,8 @@
+let currentQuery = '';
+let currentPage = 1;
+let currentSize = 8;
+
+
 function makeSearchUser(page = 1, size = 8, resetQuery = false) {
     if (resetQuery) {
         currentQuery = document.getElementById("searchInput").value.trim();
@@ -10,7 +15,7 @@ function makeSearchUser(page = 1, size = 8, resetQuery = false) {
 
     let routeUrl = `/api/users?page=${page}&size=${size}`;
     if (currentQuery) {
-        routeUrl += `&kw=${encodeURIComponent(currentQuery)}`;
+        routeUrl += `&search=${encodeURIComponent(currentQuery)}`;
     }
     const fullUrl = window.location.origin + routeUrl;
 
@@ -38,9 +43,9 @@ function makeSearchUser(page = 1, size = 8, resetQuery = false) {
                 loadingDiv.style.display = 'none';
             }
             resultDiv.innerHTML = '<p>Invalid search. Please try again</p>';
-            const errorEl = document.createElement('p');   // 也可以用 'div'
-            errorEl.style.color = 'red';                  // 让错误文字醒目
-            errorEl.textContent = `Error: ${error.message || error}`; // 推荐用 textContent 防止 XSS
+            const errorEl = document.createElement('p');
+            errorEl.style.color = 'red';
+            errorEl.textContent = `Error: ${error.message || error}`;
 
 
             resultDiv.appendChild(errorEl);
@@ -64,14 +69,29 @@ function displaySearchUser(data) {
     console.log(html)
     data.results.forEach(user => {
         html += `
-        <div class="user-card">
+        <div class="elem-card" data-user-id="${user.userId}">
             <h3>User Info</h3>
             <p>Full Name: ${user.firstName} ${user.lastName}</p>
-            <p></p>
+            <p>email: ${user.email}</p>
+            <p>location:${user.location}</p>
+            <p>status: ${user.status}</p>
+            
         </div>
         `
     })
     resultDiv.innerHTML = html;
+
+    resultDiv.addEventListener('click', function(e) {
+        const card = e.target.closest('.elem-card');
+        if (card) {
+            const userId = card.dataset.userId;
+            window.location.href= `/api/users/${userId}`
+        }
+    })
+
+    displayPagination(data, (newPage, newSize) => {
+        makeSearchUser(newPage, newSize, false);
+    })
 }
 
 function clearSearchUser() {

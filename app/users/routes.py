@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify, render_template
 from app import db
-from sqlalchemy import or_
 from app.users import users_bp
+from sqlalchemy import or_
 from app.models import User, Location
 from decimal import Decimal
 
-@users_bp.route('/page/users/search', methods=['GET'])
+@users_bp.route('/users/search', methods=['GET'])
 def search_page():
     return render_template("demo_user.html")
 
@@ -18,13 +18,12 @@ def get_users():
 
     query = User.query
     if kw:
-        query = query.filter(
-            or_(
-                User.firstName.like(f"%{kw}%"),
-                User.lastName.like(f"%{kw}%"),
-                User.email.like(f"%{kw}%")
-            )
-        )
+        conditions = [
+            User.firstName.ilike(f"%{kw}%"),
+            User.lastName.ilike(f"%{kw}%"),
+            User.email.ilike(f"%{kw}%")
+        ]
+        query = query.filter(or_(*conditions))
 
     pagination = query.paginate(page=page, per_page=size, error_out=False)
     print(query)
@@ -50,3 +49,13 @@ def get_users():
         "results": data,
     })
 
+@users_bp.route('/api/users/<int:userid>', methods=['GET'])
+def get_user_detail(userid):
+    user = User.query.get(userid)
+
+@users_bp.route('/users/<int:userid>', methods=['GET'])
+def user_detail_page(userid):
+    user = User.query.filter(User.userId == userid).first()
+
+    user_full_name = ""
+    return render_template("demo_user.html", title_name=user_full_name)
