@@ -1,6 +1,7 @@
 # Instructions to run dataGenerator.py
 
 To upload the generated data using python to Supabase follow the given steps:
+- Ensure that schema already exists on Supabase as the Python script doesnt create any scehama, it just adds data to it.
 - When you open Supabase's project, at the top you will see Connect button. Click on it
 - Under the connection string, change the method of Transaction pooler. Keep the Type as URI and Source as Primary Database.
 - click on view paramaters and you'll be able to see details of host, port, database, user.
