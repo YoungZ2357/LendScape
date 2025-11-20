@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, render_template
 from app import db
 from app.users import users_bp
 from sqlalchemy import or_
-from app.models import User, Location, Order
+from app.models import User, Location, Order, Item
 from decimal import Decimal
 
 @users_bp.route('/users/search', methods=['GET'])
@@ -49,6 +49,11 @@ def get_users():
         "results": data,
     })
 
+
+@users_bp.route('/api/users', methods=['POST'])
+def create_user():
+    pass
+
 @users_bp.route('/api/users/<int:userid>', methods=['GET'])
 def get_user_stats(userid: int):
     """
@@ -56,16 +61,16 @@ def get_user_stats(userid: int):
     :param userid:
     :return:
     """
-    user = User.query.get_or_404(userid)
+    user = User.query.filter(User.userId==userid).first()
 
-    borrower_orders = Order.query.filter_by(borrowerId=userid).all()
-    lender_orders = Order.query.filter_by(lenderId=userid).all()
+    borrower_orders = Order.query.filter(Order.borrowerId == userid).all()
+    lender_orders = Order.query.filter(Order.renterId == userid).all()
 
 
     return jsonify({
         'user_info': {
-            'userid': user.userid,
-            'username': user.username,
+            'userid': user.userId,
+            'username': f"{user.firstName} {user.lastName}",
             'email': user.email
         },
         'order_statistics': {
@@ -79,13 +84,21 @@ def get_user_stats(userid: int):
 
 
 def build_order_info(orders):
+    # print(orders[0].orderId, "\n", orders[1].orderId, "\n", orders[2].orderId)
+    query = Item.query
+    new_orders = []
+    for order in orders:
+        target = query.filter(Item.itemId == order.itemId).first()
+        order.itemName = target.itemName
+        order.description = target.description
+        new_orders.append(order)
     return [{
         'order_id': order.orderId,
-        'item_name': order.item.itemName,
-        'item_description': order.item.description,
-        'item_status': order.item.is_available,
+        'item_name': order.itemName,
+        'description': order.description,
+        # 'item_status': order.item.is_available,
         'created_at': order.created_at.isoformat() if hasattr(order, 'created_at') else None
-    } for order in orders]
+    } for order in new_orders]
 
 
 

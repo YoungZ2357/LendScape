@@ -13,8 +13,8 @@ class UserStatus(enum.Enum):
     BANNED = 'banned'
 
 class StatusType(enum.Enum):
-    PENDING = 'pending'
-    COMPLETE = 'complete'
+    pending = 'pending'
+    complete = 'complete'
 
 
 
@@ -33,6 +33,8 @@ class User(db.Model):
         Enum(UserClass, values_callable=lambda x: [e.value for e in x]),
         name='userClass'
     )
+
+    auth_id = db.Column('auth_id', db.Integer)
     pwd = db.Column('pwd', db.String(255))
     status = db.Column(
         Enum(UserStatus, values_callable=lambda x: [e.value for e in x]),
@@ -112,15 +114,16 @@ class Item(db.Model):
 
 class Order(db.Model):
     __tablename__ = 'Order'
-    __table_args__ = {'extend_existing': True}
+    __table_args__ = {"extend_existing": True, "schema": "lendscapev1"}
 
     orderId = db.Column('orderid', db.Integer, primary_key=True, autoincrement=True)
     renterId = db.Column('renterid', db.Integer, db.ForeignKey('User.userid'))
     borrowerId = db.Column('borrowerid', db.Integer, db.ForeignKey('User.userid'))
     reviewId = db.Column('reviewid', db.Integer, db.ForeignKey('Review.reviewid'))
+    itemId = db.Column('itemid', db.Integer, db.ForeignKey('Item.itemid'))
     status = db.Column(db.Enum(StatusType))
 
-    review = db.relationship('Review', backref='order', foreign_keys=[reviewId])
+    # review = db.relationship('Review', backref='order', foreign_keys=[reviewId])
 
     def to_dict(self):
         return {
@@ -128,13 +131,14 @@ class Order(db.Model):
             'renterId': self.renterId,
             'borrowerId': self.borrowerId,
             'reviewId': self.reviewId,
+            'itemId': self.itemId,
             'status': self.status.value if self.status else None
         }
 
 
 class Review(db.Model):
     __tablename__ = 'Review'
-    __table_args__ = {'extend_existing': True}
+    __table_args__ = {"extend_existing": True, "schema": "lendscapev1"}
 
     reviewId = db.Column('reviewid', db.Integer, primary_key=True, autoincrement=True)
     userId = db.Column('userid', db.Integer, db.ForeignKey('User.userId'))
@@ -153,7 +157,7 @@ class Review(db.Model):
             'rating': float(self.rating) if self.rating else None
         }
 
-user_item_association = db.Table('UserItem',
-    db.Column('userid', db.Integer, db.ForeignKey('User.userid'), primary_key=True),
-    db.Column('itemid', db.Integer, db.ForeignKey('Item.itemid'), primary_key=True)
-)
+# user_item_association = db.Table('UserItem',
+#     db.Column('userId', db.Integer, db.ForeignKey('User.userid'), primary_key=True),
+#     db.Column('itemId', db.Integer, db.ForeignKey('Item.itemid'), primary_key=True)
+# )

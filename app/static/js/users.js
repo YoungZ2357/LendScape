@@ -125,8 +125,9 @@ function fetchUserDetail(userId = null, refresh = false) {
 
     // API路径是正确的
     const routeUrl = `/api/users/${userId}`;
-    const fullUrl = window.location.origin + routeUrl;
 
+    const fullUrl = window.location.origin + routeUrl;
+    console.log(fullUrl);
     const loadingDiv = document.getElementById("loading");
     if (loadingDiv) {
         loadingDiv.style.display = "block";
@@ -137,13 +138,16 @@ function fetchUserDetail(userId = null, refresh = false) {
             if (!response.ok) {
                 throw new Error(`HTTP status was ${response.status}`);
             }
+            // console.log(response.json())
             return response.json();
         })
         .then(data => {
             if (loadingDiv) {
                 loadingDiv.style.display = 'none';
             }
+            // console.log(data)
             currentUserData = data;
+            console.log(currentUserData)
             displayUserDetail(data);
         })
         .catch(error => {
@@ -155,34 +159,44 @@ function fetchUserDetail(userId = null, refresh = false) {
 }
 
 function displayUserDetail(data) {
+    console.log("displayUserDetail triggered");
     displayUserInfo(data.user_info);
     displayUserStatistics(data.order_statistics);
 
     // 显示订单（如果页面有对应元素）
-    if (document.getElementById('borrower-orders')) {
+    if (document.getElementById('borrowing-section')) {
+        console.log("get borrower")
         displayUserOrders(data.borrower_orders, 'borrower');
     }
-    if (document.getElementById('lender-orders')) {
+    if (document.getElementById('lending-section')) {
         displayUserOrders(data.lender_orders, 'lender');
     }
 }
 
 function displayUserInfo(userInfo) {
-    const infoDiv = document.getElementById("user-info");
+    console.log("displayUserInfo triggered");
+    const infoDiv = document.getElementById("profile-card");
     if (!infoDiv) return;
 
+    // let html = `
+    //     <div class="user-info-card">
+    //         <h2>${userInfo.username}</h2>
+    //         <div class="info-details">
+    //             <p><strong>User ID:</strong> ${userInfo.userid}</p>
+    //             <p><strong>邮箱:</strong> ${userInfo.email}</p>
+    //         </div>
+    //     </div>
+    // `;
     let html = `
-        <div class="user-info-card">
-            <h2>${userInfo.username}</h2>
-            <div class="info-details">
-                <p><strong>用户ID:</strong> ${userInfo.userid}</p>
-                <p><strong>邮箱:</strong> ${userInfo.email}</p>
-            </div>
-        </div>
-    `;
+    <div class="profile-header" id="profile-card">
+        <div class="profile-avatar" id="profile-avatar">-</div>
+        <div class="profile-name" id="profile-name">${userInfo.username}</div>
+        <div class="profile-username" id="profile-email">${userInfo.email}</div>
+    </div>
+    `
 
     infoDiv.innerHTML = html;
-
+    console.log(infoDiv.innerHTML)
     // 更新页面标题
     const titleElement = document.getElementById("page-title");
     if (titleElement) {
@@ -193,6 +207,7 @@ function displayUserInfo(userInfo) {
     const profileName = document.getElementById("profile-name");
     if (profileName) {
         profileName.textContent = userInfo.username;
+        console.log(profileName.textContent)
     }
 
     // 更新email
@@ -216,29 +231,46 @@ function displayUserInfo(userInfo) {
 }
 
 function displayUserStatistics(statistics) {
-    const statsDiv = document.getElementById("order-statistics");
+    const statsDiv = document.getElementById("profile-stats");
     if (!statsDiv) return;
 
+    // let html = `
+    //     <div class="stats-container">
+    //         <h3>Orders</h3>
+    //         <div class="stats-grid">
+    //             <div class="stat-item">
+    //                 <span class="stat-label">Borrowed</span>
+    //                 <span class="stat-value">${statistics.borrower_count}</span>
+    //             </div>
+    //             <div class="stat-item">
+    //                 <span class="stat-label">Lended</span>
+    //                 <span class="stat-value">${statistics.lender_count}</span>
+    //             </div>
+    //             <div class="stat-item">
+    //                 <span class="stat-label">Total</span>
+    //                 <span class="stat-value">${statistics.total_count}</span>
+    //             </div>
+    //         </div>
+    //     </div>
+    // `;
     let html = `
-        <div class="stats-container">
-            <h3>Orders</h3>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <span class="stat-label">Borrowed</span>
-                    <span class="stat-value">${statistics.borrower_count}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Lended</span>
-                    <span class="stat-value">${statistics.lender_count}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Total</span>
-                    <span class="stat-value">${statistics.total_count}</span>
-                </div>
-            </div>
-        </div>
-    `;
 
+        <div class="stat">
+            <div class="stat-value" id="items-count">${statistics.lender_count}</div>
+             <div class="stat-label">Items</div>
+        </div>
+            <div class="stat">
+                <div class="stat-value" id="total-orders">${statistics.total_count}</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="user-rating">TBD</div>
+                    <div class="stat-label">Rating</div>
+                </div>
+
+    
+    `
+    console.log(statistics)
     statsDiv.innerHTML = html;
 
     // 更新侧边栏统计（用户详情页）
@@ -257,6 +289,8 @@ function displayUserStatistics(statistics) {
 }
 
 function displayUserOrders(orders, type) {
+    console.log("display orders triggerd")
+    console.log("type", type);
     const containerDiv = document.getElementById(`${type}-orders`);
     const resultsDiv = document.getElementById(`${type}-orders-results`);
     const targetDiv = containerDiv || resultsDiv;
@@ -281,7 +315,7 @@ function displayUserOrders(orders, type) {
     orders.forEach(order => {
         const statusClass = order.item_status ? 'status-available' : 'status-unavailable';
         const statusText = order.item_status ? '✓ Available' : '✗ Not Available';
-
+        console.log(order)
         html += `
             <div class="order-card" data-order-id="${order.order_id}">
                 <div class="order-info">

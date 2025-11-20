@@ -1,8 +1,7 @@
 from flask import Blueprint, request, jsonify, render_template
-from app import db
 from app.item import items_bp
 from app.models import User, Item
-from decimal import Decimal
+
 
 
 @items_bp.route("/api/items", methods=['GET'])
