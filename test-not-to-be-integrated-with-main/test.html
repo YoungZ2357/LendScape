@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Table Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .table-selector {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .selector-content {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .selector-content label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 16px;
+        }
+
+        .selector-content select {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .selector-content select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .selector-content button {
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .selector-content button:hover {
+            background: #5568d3;
+        }
+
+        .selector-content button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .stats {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-item .number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-item .label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+            font-size: 18px;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            margin: 20px 30px;
+            border-radius: 8px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .error strong {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            padding: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            color: #212529;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+
+        .empty-state h3 {
+            margin-top: 20px;
+            color: #495057;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-true {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-false {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .column-name {
+            font-weight: 600;
+            color: #667eea;
+            text-transform: capitalize;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗄️ Supabase Table Viewer</h1>
+            <p>Select a table and view its data dynamically</p>
+        </div>
+
+        <div class="table-selector">
+            <div class="selector-content">
+                <label for="tableSelect">Select Table:</label>
+                <select id="tableSelect">
+                    <option value="">-- Choose a table --</option>
+                    <option value="Location">Location</option>
+                    <option value="User">User</option>
+                    <option value="Item">Item</option>
+                    <option value="UserItem">UserItem</option>
+                    <option value="Order">Order</option>
+                    <option value="Review">Review</option>
+                </select>
+                <button onclick="loadData()">Load Data</button>
+            </div>
+        </div>
+
+        <div id="statsContainer" style="display: none;">
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="number" id="totalCount">0</div>
+                    <div class="label">Total Records</div>
+                </div>
+                <div class="stat-item">
+                    <div class="number" id="columnCount">0</div>
+                    <div class="label">Columns</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="controlsContainer" style="display: none;">
+            <div class="controls">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search across all columns...">
+                </div>
+                <button onclick="loadData()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <div id="content">
+            <div class="empty-state">
+                <h3>👆 Select a table to get started</h3>
+                <p>Choose a table from the dropdown above and click "Load Data"</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://nrvwkdppdznvorrwhogs.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ydndrZHBwZHpudm9ycndob2dzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0NjkxOTMsImV4cCI6MjA3OTA0NTE5M30.MUzz48qCj_fv01SrhgpWVp_MmdBbueclhQXeS7yqdpo';
+        
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let allData = [];
+        let currentColumns = [];
+
+        // Load data from selected table
+        async function loadData() {
+            const tableSelect = document.getElementById('tableSelect');
+            const tableName = tableSelect.value;
+
+            if (!tableName) {
+                alert('Please select a table first!');
+                return;
+            }
+
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = '<div class="loading">Loading data</div>';
+
+            document.getElementById('statsContainer').style.display = 'none';
+            document.getElementById('controlsContainer').style.display = 'none';
+
+            try {
+                console.log(`Fetching data from table: ${tableName}`);
+                
+                let { data, error } = await supabaseClient
+                    .schema('lendscapev1')
+                    .from(tableName)
+                    .select('*');
+
+                console.log('Response:', { data, error });
+
+                if (error) {
+                    console.error('Error:', error);
+                    contentDiv.innerHTML = `
+                        <div class="error">
+                            <strong>Error loading table "${tableName}":</strong>
+                            ${error.message}<br><br>
+                            <strong>Possible solutions:</strong>
+                            <ul>
+                                <li>Check if RLS policies allow SELECT for anon role on table "${tableName}"</li>
+                                <li>Verify the table exists in schema "lendscapev1"</li>
+                                <li>Run: <code>CREATE POLICY "Allow read" ON lendscapev1."${tableName}" FOR SELECT TO anon USING (true);</code></li>
+                            </ul>
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    contentDiv.innerHTML = `
+                        <div class="empty-state">
+                            <h3>📭 No data found</h3>
+                            <p>The "${tableName}" table is empty or you don't have permission to view it.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                allData = data;
+                currentColumns = data.length > 0 ? Object.keys(data[0]) : [];
+                
+                displayData(allData);
+                updateStats(allData);
+
+                document.getElementById('statsContainer').style.display = 'block';
+                document.getElementById('controlsContainer').style.display = 'block';
+                document.getElementById('searchInput').value = '';
+
+            } catch (err) {
+                console.error('Fetch error:', err);
+                contentDiv.innerHTML = `
+                    <div class="error">
+                        <strong>Connection error:</strong><br>
+                        ${err.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Display data in table
+        function displayData(data) {
+            const contentDiv = document.getElementById('content');
+            
+            if (data.length === 0) {
+                contentDiv.innerHTML = `
+                    <div class="empty-state">
+                        <h3>🔍 No results found</h3>
+                        <p>Try adjusting your search criteria.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const columns = Object.keys(data[0]);
+
+            let html = `
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                ${columns.map(col => `<th><span class="column-name">${col}</span></th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            data.forEach(row => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    let value = row[col];
+                    
+                    // Format different data types
+                    if (value === null || value === undefined) {
+                        value = '<span style="color: #adb5bd;">null</span>';
+                    } else if (typeof value === 'boolean') {
+                        value = `<span class="badge ${value ? 'badge-true' : 'badge-false'}">${value ? 'Yes' : 'No'}</span>`;
+                    } else if (typeof value === 'object') {
+                        value = JSON.stringify(value);
+                    }
+                    
+                    html += `<td>${value}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+        }
+
+        // Update statistics
+        function updateStats(data) {
+            document.getElementById('totalCount').textContent = data.length;
+            document.getElementById('columnCount').textContent = currentColumns.length;
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            if (!searchTerm) {
+                displayData(allData);
+                return;
+            }
+
+            const filtered = allData.filter(row => {
+                return currentColumns.some(col => {
+                    const value = row[col];
+                    if (value === null || value === undefined) return false;
+                    return String(value).toLowerCase().includes(searchTerm);
+                });
+            });
+
+            displayData(filtered);
+        });
+
+        // Allow Enter key to load data
+        document.getElementById('tableSelect').addEventListener('change', function() {
+            if (this.value) {
+                loadData();
+            }
+        });
+    </script>
+</body>
+</html>

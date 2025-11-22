@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Location Map</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .controls {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .filter-group select, .filter-group input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .filter-group button {
+            padding: 8px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .filter-group button:hover {
+            background: #2980b9;
+        }
+
+        #map {
+            height: 600px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .info-panel {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .info-panel h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .stat-card .label {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .leaflet-popup-content {
+            margin: 10px;
+        }
+
+        .popup-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .popup-info {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .popup-info strong {
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📍 Library Location Map</h1>
+        
+        <div class="controls">
+            <div class="filter-group">
+                <label>Filter by Type:</label>
+                <select id="typeFilter">
+                    <option value="all">All Locations</option>
+                    <option value="Library">Libraries</option>
+                    <option value="Branch">Branches</option>
+                    <option value="Mobile">Mobile Units</option>
+                </select>
+
+                <label>Search:</label>
+                <input type="text" id="searchBox" placeholder="Search location name...">
+
+                <button onclick="applyFilters()">Apply</button>
+                <button onclick="resetFilters()">Reset</button>
+            </div>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="info-panel">
+            <h3>Location Statistics</h3>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="number" id="totalLocations">0</div>
+                    <div class="label">Total Locations</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="libraryCount">0</div>
+                    <div class="label">Libraries</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="branchCount">0</div>
+                    <div class="label">Branches</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="mobileCount">0</div>
+                    <div class="label">Mobile Units</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://nrvwkdppdznvorrwhogs.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ydndrZHBwZHpudm9ycndob2dzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0NjkxOTMsImV4cCI6MjA3OTA0NTE5M30.MUzz48qCj_fv01SrhgpWVp_MmdBbueclhQXeS7yqdpo';
+        
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let map;
+        let markers = [];
+        let allLocations = [];
+
+        // Initialize map
+        async function initMap() {
+            map = L.map('map').setView([40.7128, -74.0060], 12);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 18
+            }).addTo(map);
+
+            // Fetch locations from Supabase
+            await fetchLocations();
+        }
+
+        // Fetch locations from Supabase
+        async function fetchLocations() {
+            try {
+                console.log('Fetching locations from Supabase...');
+                console.log('Schema: lendscapev1, Table: Location');
+                
+                // Try without schema first
+                let { data, error } = await supabaseClient
+                    .from('Location')
+                    .select('*');
+
+                console.log('Query without schema:', { data, error });
+
+                // If that fails, try with schema
+                if (error || !data || data.length === 0) {
+                    console.log('Trying with schema...');
+                    const result = await supabaseClient
+                        .schema('lendscapev1')
+                        .from('Location')
+                        .select('*');
+                    
+                    data = result.data;
+                    error = result.error;
+                    console.log('Query with schema:', { data, error });
+                }
+
+                if (error) {
+                    console.error('Supabase error:', error);
+                    alert(`Error loading locations: ${error.message}\n\nPossible issues:\n1. Check if RLS policies allow SELECT for anon role\n2. Verify table exists in lendscapev1 schema\n3. Check table name is exactly "Location"`);
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    console.warn('No locations found in database');
+                    alert('No locations found in database.\n\nPlease:\n1. Add some locations to your Location table\n2. Make sure the table is in the lendscapev1 schema\n3. Verify RLS policies allow reading');
+                    
+                    // Show sample data structure
+                    console.log('Expected table structure:', {
+                        id: 'number',
+                        name: 'string',
+                        type: 'string',
+                        address: 'string',
+                        lat: 'number (latitude)',
+                        lng: 'number (longitude)',
+                        phone: 'string',
+                        hours: 'string'
+                    });
+                    return;
+                }
+
+                console.log(`Found ${data.length} locations:`, data);
+                
+                // Map data to ensure correct field names
+                allLocations = data.map(loc => ({
+                    id: loc.id || loc.location_id,
+                    name: loc.name || loc.location_name || 'Unknown',
+                    type: loc.type || loc.location_type || 'Library',
+                    address: loc.address || loc.location_address || '',
+                    lat: parseFloat(loc.lat || loc.latitude || 0),
+                    lng: parseFloat(loc.lng || loc.longitude || 0),
+                    phone: loc.phone || loc.phone_number || '',
+                    hours: loc.hours || loc.operating_hours || ''
+                }));
+
+                console.log('Processed locations:', allLocations);
+
+                // Check for valid coordinates
+                const validLocations = allLocations.filter(loc => 
+                    loc.lat !== 0 && loc.lng !== 0 && 
+                    !isNaN(loc.lat) && !isNaN(loc.lng)
+                );
+
+                if (validLocations.length === 0) {
+                    alert('No locations have valid coordinates (lat/lng). Please add coordinates to your Location table.');
+                    return;
+                }
+
+                if (validLocations.length < allLocations.length) {
+                    console.warn(`${allLocations.length - validLocations.length} locations skipped due to invalid coordinates`);
+                }
+
+                displayLocations(validLocations);
+                updateStats(validLocations);
+                
+            } catch (err) {
+                console.error('Fetch error:', err);
+                alert(`Error connecting to database: ${err.message}`);
+            }
+        }
+
+        // Display locations on map
+        function displayLocations(locs) {
+            // Clear existing markers
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+
+            locs.forEach(loc => {
+                const icon = getIconForType(loc.type);
+                
+                const marker = L.marker([loc.lat, loc.lng], { icon: icon })
+                    .addTo(map)
+                    .bindPopup(`
+                        <div class="popup-title">${loc.name}</div>
+                        <div class="popup-info">
+                            <strong>Type:</strong> ${loc.type}<br>
+                            <strong>Address:</strong> ${loc.address}<br>
+                            <strong>Phone:</strong> ${loc.phone}<br>
+                            <strong>Hours:</strong> ${loc.hours}
+                        </div>
+                    `);
+
+                markers.push(marker);
+            });
+
+            // Fit map to show all markers
+            if (markers.length > 0) {
+                const group = L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        // Get custom icon based on location type
+        function getIconForType(type) {
+            const colors = {
+                'Library': '#e74c3c',
+                'Branch': '#3498db',
+                'Mobile': '#2ecc71'
+            };
+
+            return L.divIcon({
+                className: 'custom-icon',
+                html: `<div style="
+                    background-color: ${colors[type] || '#95a5a6'};
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50% 50% 50% 0;
+                    transform: rotate(-45deg);
+                    border: 3px solid white;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                "></div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 30]
+            });
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const typeFilter = document.getElementById('typeFilter').value;
+            const searchText = document.getElementById('searchBox').value.toLowerCase();
+
+            let filtered = allLocations;
+
+            if (typeFilter !== 'all') {
+                filtered = filtered.filter(loc => loc.type === typeFilter);
+            }
+
+            if (searchText) {
+                filtered = filtered.filter(loc => 
+                    loc.name.toLowerCase().includes(searchText) ||
+                    loc.address.toLowerCase().includes(searchText)
+                );
+            }
+
+            displayLocations(filtered);
+            updateStats(filtered);
+        }
+
+        // Reset filters
+        function resetFilters() {
+            document.getElementById('typeFilter').value = 'all';
+            document.getElementById('searchBox').value = '';
+            displayLocations(allLocations);
+            updateStats(allLocations);
+        }
+
+        // Update statistics
+        function updateStats(locs) {
+            document.getElementById('totalLocations').textContent = locs.length;
+            document.getElementById('libraryCount').textContent = 
+                locs.filter(l => l.type === 'Library').length;
+            document.getElementById('branchCount').textContent = 
+                locs.filter(l => l.type === 'Branch').length;
+            document.getElementById('mobileCount').textContent = 
+                locs.filter(l => l.type === 'Mobile').length;
+        }
+
+        // Search on enter key
+        document.getElementById('searchBox').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                applyFilters();
+            }
+        });
+
+        // Initialize map when page loads
+        window.onload = initMap;
+    </script>
+</body>
+</html>
