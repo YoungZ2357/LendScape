@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Details - LendScape</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/item_detail.css') }}">
+    <link rel="stylesheet" href="../static/css/item_detail.css">
+</head>
+<body>
+<script src="{{ url_for('static', filename='js/utils.js')}}"></script>
+<script src="{{ url_for('static', filename='js/items.js')}}"></script>
+
+<!-- Hidden input for item ID -->
+<input type="hidden" id="item-id" value="">
+
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="logo">📦 LendScape</div>
+        <div class="nav-menu">
+            <a href="{{ url_for('main.index') }}">Home</a>
+            <a href="#" class="active">Browse</a>
+            <a href="#">Messages</a>
+            <a href="#">Profile</a>
+        </div>
+        <div class="user-menu">
+            <div class="notification-icon">
+                🔔
+                <span class="notification-badge"></span>
+            </div>
+            <div class="user-avatar" id="nav-avatar">-</div>
+        </div>
+    </div>
+</nav>
+
+<div class="main-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <!-- Item Card -->
+        <div class="item-card-detail">
+            <div class="item-header">
+                <div class="item-image-large" id="item-image">
+                    📦
+                </div>
+                <div class="item-availability" id="item-availability">
+                    <span class="availability-badge available">Available</span>
+                </div>
+            </div>
+            <div class="item-info">
+                <h2 class="item-name" id="item-name">Loading...</h2>
+                <div class="item-price-info">
+                    <span class="price-label">Price per day</span>
+                    <div class="price-value" id="item-price">$0.00</div>
+                </div>
+                <div class="item-meta-info">
+                    <div class="meta-item">
+                        <span class="meta-icon">🏷️</span>
+                        <span class="meta-label">Item ID: </span>
+                        <span class="meta-value" id="item-id-display">-</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-icon">📊</span>
+                        <span class="meta-label">Total Orders: </span>
+                        <span class="meta-value" id="total-orders">0</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-icon">⭐</span>
+                        <span class="meta-label">Rating: </span>
+                        <span class="meta-value" id="item-rating">N/A</span>
+                    </div>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-primary btn-block" id="rent-now-btn">
+                    <span>🛒</span> Rent Now
+                </button>
+                <button class="btn btn-secondary btn-block" id="message-owner-btn">
+                    <span>💬</span> Message Owner
+                </button>
+            </div>
+        </div>
+
+        <!-- Owner Card -->
+        <div class="owner-card">
+            <div class="section-title">Owner Information</div>
+            <div class="owner-info" id="owner-info">
+                <div class="owner-avatar" id="owner-avatar">-</div>
+                <div class="owner-details">
+                    <div class="owner-name" id="owner-name">Loading...</div>
+                    <div class="owner-email" id="owner-email">-</div>
+                    <div class="owner-location" id="owner-location">
+                        <span class="location-icon">📍</span>
+                        <span id="location-text">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="owner-stats">
+                <div class="stat">
+                    <div class="stat-value" id="owner-items">0</div>
+                    <div class="stat-label">Items</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="owner-rating">N/A</div>
+                    <div class="stat-label">Rating</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="owner-verified">No</div>
+                    <div class="stat-label">Verified</div>
+                </div>
+            </div>
+            <button class="btn btn-outline btn-block" onclick="viewOwnerProfile()">
+                View Profile
+            </button>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area">
+        <!-- Loading State -->
+        <div id="loading" class="loading" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>Loading item details...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="error-message"></div>
+
+        <!-- Item Details Section -->
+        <div class="content-section">
+            <div class="content-header">
+                <h1 class="content-title">Item Details</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="editItem()" id="edit-btn" style="display: none;">
+                        <span>✏️</span> Edit
+                    </button>
+                    <button class="btn btn-danger" onclick="deleteItem()" id="delete-btn" style="display: none;">
+                        <span>🗑️</span> Delete
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" data-tab="description">Description</button>
+                <button class="tab" data-tab="orders">Orders (<span id="orders-count">0</span>)</button>
+                <button class="tab" data-tab="reviews">Reviews (<span id="reviews-count">0</span>)</button>
+                <button class="tab" data-tab="availability">Availability</button>
+            </div>
+
+            <!-- Tab Contents -->
+            <!-- Description Tab -->
+            <div id="description-tab" class="tab-content active">
+                <div class="description-section">
+                    <h3 class="section-subtitle">About this item</h3>
+                    <p class="item-description" id="item-description">
+                        Loading description...
+                    </p>
+                </div>
+
+                <div class="specs-section">
+                    <h3 class="section-subtitle">Specifications</h3>
+                    <div class="specs-grid">
+                        <div class="spec-item">
+                            <span class="spec-label">Category</span>
+                            <span class="spec-value" id="item-category">General</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Condition</span>
+                            <span class="spec-value" id="item-condition">Good</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Added Date</span>
+                            <span class="spec-value" id="item-added-date">-</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Last Updated</span>
+                            <span class="spec-value" id="item-updated-date">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="terms-section">
+                    <h3 class="section-subtitle">Rental Terms</h3>
+                    <ul class="terms-list">
+                        <li>Minimum rental period: 1 day</li>
+                        <li>Maximum rental period: 30 days</li>
+                        <li>Security deposit may be required</li>
+                        <li>Late return fee: $5 per day</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div id="orders-tab" class="tab-content">
+                <div class="orders-filter">
+                    <select id="order-status-filter" class="filter-select">
+                        <option value="all">All Orders</option>
+                        <option value="pending">Pending</option>
+                        <option value="complete">Completed</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="refreshOrders()">
+                        🔄 Refresh
+                    </button>
+                </div>
+                <div id="orders-list">
+                    <!-- Orders will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Reviews Tab -->
+            <div id="reviews-tab" class="tab-content">
+                <div class="reviews-summary">
+                    <div class="rating-overview">
+                        <div class="rating-number" id="average-rating">0.0</div>
+                        <div class="rating-stars" id="rating-stars">
+                            ⭐⭐⭐⭐⭐
+                        </div>
+                        <div class="rating-count">Based on <span id="review-count">0</span> reviews</div>
+                    </div>
+                </div>
+                <div id="reviews-list">
+                    <!-- Reviews will be loaded here -->
+                    <div class="empty-state">
+                        <div class="empty-icon">💬</div>
+                        <div class="empty-title">No Reviews Yet</div>
+                        <div class="empty-description">Be the first to review this item!</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Availability Tab -->
+            <div id="availability-tab" class="tab-content">
+                <div class="calendar-section">
+                    <h3 class="section-subtitle">Availability Calendar</h3>
+                    <div class="calendar-placeholder">
+                        <div class="empty-state">
+                            <div class="empty-icon">📅</div>
+                            <div class="empty-title">Calendar View</div>
+                            <div class="empty-description">Availability calendar feature coming soon</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="booking-rules">
+                    <h3 class="section-subtitle">Booking Rules</h3>
+                    <div class="rules-list">
+                        <div class="rule-item">
+                            <span class="rule-icon">✅</span>
+                            <span>Available for immediate booking</span>
+                        </div>
+                        <div class="rule-item">
+                            <span class="rule-icon">📍</span>
+                            <span>Pickup/Delivery options available</span>
+                        </div>
+                        <div class="rule-item">
+                            <span class="rule-icon">💳</span>
+                            <span>Payment required upfront</span>
+                        </div>
+                        <div class="rule-item">
+                            <span class="rule-icon">🔒</span>
+                            <span>ID verification required</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Items Section -->
+        <div class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">More from this Owner</h2>
+                <a href="#" class="view-all-link">View All →</a>
+            </div>
+            <div class="related-items-grid" id="related-items">
+                <!-- Related items will be loaded here -->
+                <div class="item-card">
+                    <div class="item-thumbnail">📦</div>
+                    <div class="item-details">
+                        <div class="item-title">Loading...</div>
+                        <div class="item-price">$0.00/day</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 页面初始化脚本
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Item detail page loaded');
+
+        // 获取URL中的物品ID
+        const pathMatch = window.location.pathname.match(/\/items\/(\d+)/);
+        if (pathMatch) {
+            const itemId = pathMatch[1];
+            document.getElementById('item-id').value = itemId;
+
+            // 加载物品详情
+            if (typeof fetchItemDetail === 'function') {
+                fetchItemDetail(itemId);
+            } else {
+                console.error('fetchItemDetail function not found');
+            }
+        }
+
+        // 设置标签页切换
+        setupTabs();
+    });
+
+    // 标签页切换功能
+    function setupTabs() {
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const targetTab = this.dataset.tab;
+
+                // 移除所有active类
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+
+                // 添加active类到当前标签
+                this.classList.add('active');
+                document.getElementById(`${targetTab}-tab`).classList.add('active');
+            });
+        });
+    }
+
+    // 查看物主资料
+    function viewOwnerProfile() {
+        const ownerId = document.getElementById('owner-info').dataset.ownerId;
+        if (ownerId) {
+            window.location.href = `/users/${ownerId}`;
+        }
+    }
+
+    // 刷新订单列表
+    function refreshOrders() {
+        const itemId = document.getElementById('item-id').value;
+        if (itemId && typeof fetchItemOrders === 'function') {
+            fetchItemOrders(itemId);
+        }
+    }
+
+    function editItem() {
+        const itemId = document.getElementById('item-id').value;
+        console.log('Edit item:', itemId);
+    }
+
+    function deleteItem() {
+        if (confirm('Are you sure you want to delete this item?')) {
+            const itemId = document.getElementById('item-id').value;
+            console.log('Delete item:', itemId);
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -13,9 +13,10 @@ supabase_client: Client = None
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    
 
     db.init_app(app)
-    CORS(app)
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
     global supabase_client
     supabase_client = create_client(

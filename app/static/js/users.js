@@ -258,7 +258,7 @@ function displayUserStatistics(statistics) {
             <div class="stat-label">Lending</div>
         </div>
         <div class="stat">
-            <div class="stat-value" id="total-orders">${statistics.total_count}</div>
+            <div class="stat-value" id="total-orders">${statistics.borrower_count}</div>
             <div class="stat-label">Borrowing</div>
         </div>
         <div class="stat">
@@ -281,7 +281,7 @@ function displayUserStatistics(statistics) {
     }
     const totalOrders = document.getElementById("total-orders");
     if (totalOrders) {
-        totalOrders.textContent = statistics.total_count;
+        totalOrders.textContent = statistics.borrower_count;
     }
     const totalItems = document.getElementById("total-items");
 }

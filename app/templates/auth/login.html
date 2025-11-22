@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lendscape - Authentication</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-size: 32px;
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .toggle-container {
+            display: flex;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 30px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .toggle-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #060;
+            border: 1px solid #cfc;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .welcome-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .welcome-screen.show {
+            display: block;
+        }
+
+        .welcome-screen h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .user-info {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .user-info-item {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .user-info-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .user-info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .user-info-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-group button {
+            flex: 1;
+        }
+
+        .logout-btn {
+            padding: 12px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .home-btn {
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .home-btn:hover {
+            background: #218838;
+        }
+
+        .location-form {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .location-form.show {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="logo">
+        <h1>Lendscape</h1>
+        <p>Share and Borrow with Trust</p>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" style="display: none;">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px;">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Auth Forms -->
+    <div id="authSection">
+        <div class="toggle-container">
+            <button class="toggle-btn active" id="signinToggle">Sign In</button>
+            <button class="toggle-btn" id="signupToggle">Sign Up</button>
+        </div>
+
+        <div id="errorMessage" class="message error-message"></div>
+        <div id="successMessage" class="message success-message"></div>
+
+        <!-- Signin Form -->
+        <div class="form-container active" id="signinForm">
+            <form id="signinFormElement">
+                <div class="form-group">
+                    <label for="signinEmail">Email</label>
+                    <input type="email" id="signinEmail" name="email" required placeholder="john@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="signinPassword">Password</label>
+                    <input type="password" id="signinPassword" name="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="submit-btn" id="signinBtn">Sign In</button>
+            </form>
+        </div>
+
+        <!-- Signup Form -->
+        <div class="form-container" id="signupForm">
+            <form id="signupFormElement">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" required placeholder="John">
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" required placeholder="Doe">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" name="email" required placeholder="john@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumber">Phone Number</label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" required placeholder="1234567890">
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password (min 6 characters)</label>
+                    <input type="password" id="signupPassword" name="password" required minlength="6" placeholder="••••••••">
+                </div>
+                <button type="submit" class="submit-btn" id="signupBtn">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Welcome Screen -->
+    <div class="welcome-screen" id="welcomeScreen">
+        <h2>Welcome! 👋</h2>
+        <div class="user-info" id="userInfo">
+            <div class="user-info-item">
+                <div class="user-info-label">Name</div>
+                <div class="user-info-value" id="displayName">-</div>
+            </div>
+            <div class="user-info-item">
+                <div class="user-info-label">Email</div>
+                <div class="user-info-value" id="displayEmail">-</div>
+            </div>
+            <div class="user-info-item">
+                <div class="user-info-label">Phone Number</div>
+                <div class="user-info-value" id="displayPhone">-</div>
+            </div>
+            <div class="user-info-item" id="locationSection" style="display: none;">
+                <div class="user-info-label">Location</div>
+                <div class="user-info-value" id="displayLocation">-</div>
+            </div>
+        </div>
+
+        <!-- Location Form (if needed) -->
+        <div class="location-form" id="locationForm">
+            <h3 style="margin-bottom: 15px; color: #667eea;">Add Your Location</h3>
+            <form id="locationFormElement">
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <input type="text" id="address" required placeholder="123 Main Street">
+                </div>
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" id="city" required placeholder="Boston">
+                </div>
+                <div class="form-group">
+                    <label for="state">State</label>
+                    <input type="text" id="state" required placeholder="Massachusetts">
+                </div>
+                <div class="form-group">
+                    <label for="country">Country</label>
+                    <select id="country" required>
+                        <option value="">Select a country</option>
+                        <option value="USA">USA</option>
+                        <option value="Canada">Canada</option>
+                        <option value="United Kingdom">United Kingdom</option>
+                        <option value="Australia">Australia</option>
+                        <option value="India">India</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="postcode">Postcode</label>
+                    <input type="text" id="postcode" required placeholder="02101">
+                </div>
+                <button type="submit" class="submit-btn">Save Location</button>
+            </form>
+        </div>
+
+        <div class="btn-group">
+            <button class="home-btn" onclick="window.location.href='/'">Go to Home</button>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== API配置 =====
+    // 使用相对路径避免CORS问题
+    async function apiCall(endpoint, method = 'GET', body = null) {
+        try {
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin'  // 同源请求
+            };
+
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            const response = await fetch(endpoint, options);
+            const data = await response.json();
+            console.log(data)
+            if (!response.ok) {
+                throw new Error(data.error || 'Request failed');
+            }
+
+            return data;
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    }
+
+    // ===== DOM元素 =====
+    const signinToggle = document.getElementById('signinToggle');
+    const signupToggle = document.getElementById('signupToggle');
+    const signinForm = document.getElementById('signinForm');
+    const signupForm = document.getElementById('signupForm');
+    const signinFormElement = document.getElementById('signinFormElement');
+    const signupFormElement = document.getElementById('signupFormElement');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    const authSection = document.getElementById('authSection');
+    const welcomeScreen = document.getElementById('welcomeScreen');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loadingState = document.getElementById('loadingState');
+    const locationForm = document.getElementById('locationForm');
+    const locationFormElement = document.getElementById('locationFormElement');
+
+    // ===== 表单切换 =====
+    signinToggle.addEventListener('click', () => {
+        signinToggle.classList.add('active');
+        signupToggle.classList.remove('active');
+        signinForm.classList.add('active');
+        signupForm.classList.remove('active');
+        clearMessages();
+    });
+
+    signupToggle.addEventListener('click', () => {
+        signupToggle.classList.add('active');
+        signinToggle.classList.remove('active');
+        signupForm.classList.add('active');
+        signinForm.classList.remove('active');
+        clearMessages();
+    });
+
+    // ===== 消息显示 =====
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.classList.add('show');
+        successMessage.classList.remove('show');
+    }
+
+    function showSuccess(message) {
+        successMessage.textContent = message;
+        successMessage.classList.add('show');
+        errorMessage.classList.remove('show');
+    }
+
+    function clearMessages() {
+        errorMessage.classList.remove('show');
+        successMessage.classList.remove('show');
+    }
+
+    // ===== 显示用户信息 =====
+    function displayUserInfo(data) {
+        const { user, location, requiresLocation } = data;
+
+        document.getElementById('displayName').textContent = `${user.firstName} ${user.lastName}`;
+        document.getElementById('displayEmail').textContent = user.email;
+        document.getElementById('displayPhone').textContent = user.phoneNumber || 'Not provided';
+
+        if (location) {
+            document.getElementById('locationSection').style.display = 'block';
+            document.getElementById('displayLocation').textContent =
+                `${location.address}, ${location.city}, ${location.state} ${location.postcode}`;
+            locationForm.classList.remove('show');
+        } else if (requiresLocation) {
+            locationForm.classList.add('show');
+        }
+
+        authSection.style.display = 'none';
+        welcomeScreen.classList.add('show');
+    }
+
+    // ===== 登录处理 =====
+    signinFormElement.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearMessages();
+
+        const formData = {
+            email: document.getElementById('signinEmail').value.trim(),
+            password: document.getElementById('signinPassword').value
+        };
+
+        const signinBtn = document.getElementById('signinBtn');
+        signinBtn.disabled = true;
+        signinBtn.textContent = 'Signing In...';
+
+        try {
+            const data = await apiCall('/auth/signin', 'POST', formData);
+            showSuccess('Login successful!');
+            displayUserInfo(data);
+        } catch (error) {
+            showError(error.message || 'Invalid email or password');
+        } finally {
+            signinBtn.disabled = false;
+            signinBtn.textContent = 'Sign In';
+        }
+    });
+
+    // ===== 注册处理 =====
+    signupFormElement.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearMessages();
+
+        const formData = {
+            firstName: document.getElementById('firstName').value.trim(),
+            lastName: document.getElementById('lastName').value.trim(),
+            email: document.getElementById('signupEmail').value.trim(),
+            phoneNumber: document.getElementById('phoneNumber').value.trim(),
+            password: document.getElementById('signupPassword').value
+        };
+
+        if (formData.password.length < 6) {
+            showError('Password must be at least 6 characters');
+            return;
+        }
+
+        const signupBtn = document.getElementById('signupBtn');
+        signupBtn.disabled = true;
+        signupBtn.textContent = 'Creating Account...';
+
+        try {
+            const data = await apiCall('/auth/signup', 'POST', formData);
+            showSuccess('Account created successfully!');
+            displayUserInfo(data);
+        } catch (error) {
+            if (error.message.includes('already exists')) {
+                showError('Email already exists. Please sign in instead.');
+            } else {
+                showError(error.message || 'Signup failed. Please try again.');
+            }
+        } finally {
+            signupBtn.disabled = false;
+            signupBtn.textContent = 'Create Account';
+        }
+    });
+
+    // ===== 位置表单处理 =====
+    locationFormElement.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const locationData = {
+            address: document.getElementById('address').value.trim(),
+            city: document.getElementById('city').value.trim(),
+            state: document.getElementById('state').value.trim(),
+            country: document.getElementById('country').value,
+            postcode: document.getElementById('postcode').value.trim()
+        };
+
+        try {
+            const data = await apiCall('/auth/location', 'POST', locationData);
+            showSuccess('Location added successfully!');
+
+            // 更新显示
+            document.getElementById('locationSection').style.display = 'block';
+            document.getElementById('displayLocation').textContent =
+                `${locationData.address}, ${locationData.city}, ${locationData.state} ${locationData.postcode}`;
+            locationForm.classList.remove('show');
+        } catch (error) {
+            showError('Failed to save location: ' + error.message);
+        }
+    });
+
+    // ===== 登出处理 =====
+    logoutBtn.addEventListener('click', async () => {
+        try {
+            await apiCall('/auth/logout', 'POST');
+            welcomeScreen.classList.remove('show');
+            authSection.style.display = 'block';
+            signinFormElement.reset();
+            signupFormElement.reset();
+            locationFormElement.reset();
+            showSuccess('Logged out successfully');
+        } catch (error) {
+            showError('Logout failed: ' + error.message);
+        }
+    });
+
+    // ===== 检查认证状态 =====
+    window.addEventListener('load', async () => {
+        loadingState.style.display = 'block';
+        authSection.style.display = 'none';
+
+        try {
+            const data = await apiCall('/auth/check-auth');
+
+            if (data.authenticated) {
+                displayUserInfo(data);
+            } else {
+                authSection.style.display = 'block';
+            }
+        } catch (error) {
+            console.log('Not authenticated');
+            authSection.style.display = 'block';
+        } finally {
+            loadingState.style.display = 'none';
+        }
+    });
+</script>
+</body>
+</html>

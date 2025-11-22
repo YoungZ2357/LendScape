@@ -1,20 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Title</title>
+    <meta charset="UTF-8">
+    <title>Lendscape - Home</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .nav-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        .nav-section h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .nav-links a {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        .nav-links a:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        .auth-status {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .auth-status.not-logged-in {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+        .logout-btn {
+            background: #dc3545;
+        }
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        .welcome-msg {
+            color: #28a745;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
-  This is index page.
-  <div>
-    <h1>Search item debug</h1>
-    <a href="{{ url_for('items.search_page') }}">Search Item</a>
-    <h1>Search User debug</h1>
-    <a href="{{ url_for('users.search_page') }}">Search User</a>
-    <h1>User Onboarding Debug</h1>
-    <a href="{{url_for('auth.login_page')}}">Try Onboard</a>
-    <h1>Create Item debug</h1>
-      <a href="{{url_for('items.create_item_page')}}">Create Item</a>
-  </div>
+<div class="container">
+    <h1>Lendscape - Home</h1>
+
+    <!-- 认证状态显示 -->
+    {% if current_user %}
+    <div class="auth-status">
+        <span class="welcome-msg">Welcome, {{ current_user.firstName }} {{ current_user.lastName }}!</span>
+        <p>You are logged in as: {{ current_user.email }}</p>
+    </div>
+    {% else %}
+    <div class="auth-status not-logged-in">
+        <p>You are not logged in. Please <a href="{{ url_for('auth.login_page') }}">login</a> to access all features.</p>
+    </div>
+    {% endif %}
+
+    <!-- 公开功能区 -->
+    <div class="nav-section">
+        <h2>Public Features</h2>
+        <div class="nav-links">
+            <a href="{{ url_for('items.search_page') }}">Browse Items</a>
+            <a href="{{ url_for('users.search_page') }}">Find Users</a>
+        </div>
+    </div>
+
+    <!-- 需要登录的功能区 -->
+    <div class="nav-section">
+        <h2>User Features</h2>
+        {% if current_user %}
+        <div class="nav-links">
+            <a href="{{ url_for('items.create_item_page') }}">Create Item</a>
+            <a href="/api/my-items">My Items</a>
+            <a href="/api/profile">My Profile</a>
+            <a href="/api/orders">My Orders</a>
+        </div>
+        {% else %}
+        <p style="color: #666;">Please <a href="{{ url_for('auth.login_page') }}">login</a> to access user features.</p>
+        {% endif %}
+    </div>
+
+    <!-- 认证操作区 -->
+    <div class="nav-section">
+        <h2>Account</h2>
+        <div class="nav-links">
+            {% if current_user %}
+            <a href="/api/profile">Profile Settings</a>
+            <a href="#" onclick="logout()" class="logout-btn">Logout</a>
+            {% else %}
+            <a href="{{ url_for('auth.login_page') }}">Login / Sign Up</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 调试功能区（开发环境） -->
+    {% if config.DEBUG %}
+    <div class="nav-section">
+        <h2>Debug Tools</h2>
+        <div class="nav-links">
+            <a href="{{ url_for('items.search_page') }}">Search Item Debug</a>
+            <a href="{{ url_for('users.search_page') }}">Search User Debug</a>
+            <a href="{{ url_for('auth.login_page') }}">Onboarding Debug</a>
+            <a href="{{ url_for('items.create_item_page') }}">Create Item Debug</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // 登出功能
+    async function logout() {
+        if (!confirm('Are you sure you want to logout?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/auth/logout', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                window.location.href = '/';
+            } else {
+                alert('Logout failed. Please try again.');
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        }
+    }
+</script>
 </body>
 </html>

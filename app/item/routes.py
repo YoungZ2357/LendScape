@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, render_template
 from app.item import items_bp
-from app.models import User, Item, UserItem, Order
+from app.models import User, Item, UserItem, Order, Review
 from app import db
 
 
@@ -79,7 +79,6 @@ from sqlalchemy import text
 
 @items_bp.route("/items/create")
 def create_item_page():
-    """渲染创建物品页面"""
     return render_template('demo_create_item.html')
 
 
