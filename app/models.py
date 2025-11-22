@@ -31,7 +31,7 @@ class User(db.Model):
     phoneNumber = db.Column('phonenumber', db.Integer)
     userClass = db.Column(
         Enum(UserClass, values_callable=lambda x: [e.value for e in x]),
-        name='userClass'
+        name='class'
     )
 
     auth_id = db.Column('auth_id', db.Integer)
@@ -155,6 +155,28 @@ class Review(db.Model):
             'orderId': self.orderId,
             'content': self.content,
             'rating': float(self.rating) if self.rating else None
+        }
+
+
+class UserItem(db.Model):
+    __tablename__ = 'UserItem'
+    __table_args__ = {"extend_existing": True, "schema": "lendscapev1"}
+
+    userid = db.Column(
+        db.Integer,
+        db.ForeignKey('lendscapev1.User.userid'),
+        primary_key=True
+    )
+    itemid = db.Column(
+        db.Integer,
+        db.ForeignKey('lendscapev1.Item.itemid'),
+        primary_key=True
+    )
+
+    def to_dict(self):
+        return {
+            'user_id': self.userid,
+            'item_id': self.itemid,
         }
 
 # user_item_association = db.Table('UserItem',

@@ -2,13 +2,27 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 from config import Config
+from supabase import create_client, Client
+import os
+from flask_cors import CORS
 
 db = SQLAlchemy()
+supabase_client: Client = None
+
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+
     db.init_app(app)
+    CORS(app)
+
+    global supabase_client
+    supabase_client = create_client(
+        app.config['SUPABASE_URL'],
+        app.config['SUPABASE_ANON_KEY'],
+    )
+
 
     from app.main.routes import bp as main_bp
     app.register_blueprint(main_bp)
@@ -18,6 +32,9 @@ def create_app():
 
     from app.users import users_bp
     app.register_blueprint(users_bp)
+
+    from app.auth import auth_bp
+    app.register_blueprint(auth_bp)
 
     with app.app_context():
         db.create_all()

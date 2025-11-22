@@ -1,5 +1,3 @@
-
-
 let currentQuery = '';
 let currentPage = 1;
 let currentSize = 8;
@@ -8,6 +6,9 @@ let currentUserId = null;
 let currentUserData = null;
 let currentOrderPage = 1;
 let currentOrderSize = 6;
+
+let currentOwnershipPage = 1;
+let currentOwnershipSize = 8;
 
 function makeSearchUser(page = 1, size = 8, resetQuery = false) {
     if (resetQuery) {
@@ -84,7 +85,6 @@ function displaySearchUser(data) {
 
     resultDiv.innerHTML = html;
 
-
     const newResultDiv = resultDiv.cloneNode(true);
     resultDiv.parentNode.replaceChild(newResultDiv, resultDiv);
 
@@ -93,7 +93,6 @@ function displaySearchUser(data) {
         if (card) {
             const userId = card.dataset.userId;
             console.log('Navigating to user profile:', userId);
-
             window.location.href = `/users/${userId}`;
         }
     });
@@ -123,38 +122,59 @@ function fetchUserDetail(userId = null, refresh = false) {
 
     currentUserId = userId;
 
-    // API路径是正确的
     const routeUrl = `/api/users/${userId}`;
-
     const fullUrl = window.location.origin + routeUrl;
-    console.log(fullUrl);
+
     const loadingDiv = document.getElementById("loading");
     if (loadingDiv) {
         loadingDiv.style.display = "block";
     }
 
-    fetch(fullUrl)
-        .then(response => {
+    // 并行获取用户详情和物品所有权数据
+    Promise.all([
+        fetch(fullUrl).then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP status was ${response.status}`);
             }
-            // console.log(response.json())
             return response.json();
-        })
-        .then(data => {
+        }),
+        fetchUserOwnership(userId, currentOwnershipPage, currentOwnershipSize)
+    ])
+        .then(([userData, ownershipData]) => {
             if (loadingDiv) {
                 loadingDiv.style.display = 'none';
             }
-            // console.log(data)
-            currentUserData = data;
-            console.log(currentUserData)
-            displayUserDetail(data);
+            currentUserData = userData;
+            console.log(userData)
+            // 将物品所有权数据添加到用户数据中
+            currentUserData.item_ownership = ownershipData;
+
+            displayUserDetail(currentUserData);
         })
         .catch(error => {
             if (loadingDiv) {
                 loadingDiv.style.display = 'none';
             }
             displayUserError(error.message || error);
+        });
+}
+
+// 新增：获取用户物品所有权数据
+function fetchUserOwnership(userId, page = 1, size = 8) {
+    const routeUrl = `/api/items/ownership/${userId}?page=${page}&size=${size}`;
+    const fullUrl = window.location.origin + routeUrl;
+
+    return fetch(fullUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Failed to fetch ownership data: ${response.status}`);
+            }
+            return response.json();
+        })
+        .catch(error => {
+            console.error('Error fetching ownership data:', error);
+            // 返回空数据结构，避免影响其他功能
+            return { data: [], page: 1, size: 8, total: 0, pages: 0 };
         });
 }
 
@@ -171,6 +191,11 @@ function displayUserDetail(data) {
     if (document.getElementById('lending-section')) {
         displayUserOrders(data.lender_orders, 'lender');
     }
+
+    // 新增：显示用户拥有的物品
+    if (document.getElementById('items-section')) {
+        displayUserOwnership(data.item_ownership);
+    }
 }
 
 function displayUserInfo(userInfo) {
@@ -178,25 +203,17 @@ function displayUserInfo(userInfo) {
     const infoDiv = document.getElementById("profile-card");
     if (!infoDiv) return;
 
-    // let html = `
-    //     <div class="user-info-card">
-    //         <h2>${userInfo.username}</h2>
-    //         <div class="info-details">
-    //             <p><strong>User ID:</strong> ${userInfo.userid}</p>
-    //             <p><strong>邮箱:</strong> ${userInfo.email}</p>
-    //         </div>
-    //     </div>
-    // `;
     let html = `
     <div class="profile-header" id="profile-card">
         <div class="profile-avatar" id="profile-avatar">-</div>
         <div class="profile-name" id="profile-name">${userInfo.username}</div>
         <div class="profile-username" id="profile-email">${userInfo.email}</div>
     </div>
-    `
+    `;
 
     infoDiv.innerHTML = html;
-    console.log(infoDiv.innerHTML)
+    console.log(infoDiv.innerHTML);
+
     // 更新页面标题
     const titleElement = document.getElementById("page-title");
     if (titleElement) {
@@ -207,7 +224,7 @@ function displayUserInfo(userInfo) {
     const profileName = document.getElementById("profile-name");
     if (profileName) {
         profileName.textContent = userInfo.username;
-        console.log(profileName.textContent)
+        console.log(profileName.textContent);
     }
 
     // 更新email
@@ -233,44 +250,24 @@ function displayUserInfo(userInfo) {
 function displayUserStatistics(statistics) {
     const statsDiv = document.getElementById("profile-stats");
     if (!statsDiv) return;
-
-    // let html = `
-    //     <div class="stats-container">
-    //         <h3>Orders</h3>
-    //         <div class="stats-grid">
-    //             <div class="stat-item">
-    //                 <span class="stat-label">Borrowed</span>
-    //                 <span class="stat-value">${statistics.borrower_count}</span>
-    //             </div>
-    //             <div class="stat-item">
-    //                 <span class="stat-label">Lended</span>
-    //                 <span class="stat-value">${statistics.lender_count}</span>
-    //             </div>
-    //             <div class="stat-item">
-    //                 <span class="stat-label">Total</span>
-    //                 <span class="stat-value">${statistics.total_count}</span>
-    //             </div>
-    //         </div>
-    //     </div>
-    // `;
+    console.log("displayUserStatistics triggered");
+    console.log(statistics)
     let html = `
-
         <div class="stat">
             <div class="stat-value" id="items-count">${statistics.lender_count}</div>
-             <div class="stat-label">Items</div>
+            <div class="stat-label">Lending</div>
         </div>
-            <div class="stat">
-                <div class="stat-value" id="total-orders">${statistics.total_count}</div>
-                    <div class="stat-label">Total</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value" id="user-rating">TBD</div>
-                    <div class="stat-label">Rating</div>
-                </div>
+        <div class="stat">
+            <div class="stat-value" id="total-orders">${statistics.total_count}</div>
+            <div class="stat-label">Borrowing</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="user-rating">TBD</div>
+            <div class="stat-label">Rating</div>
+        </div>
+    `;
 
-    
-    `
-    console.log(statistics)
+    console.log(statistics);
     statsDiv.innerHTML = html;
 
     // 更新侧边栏统计（用户详情页）
@@ -286,10 +283,11 @@ function displayUserStatistics(statistics) {
     if (totalOrders) {
         totalOrders.textContent = statistics.total_count;
     }
+    const totalItems = document.getElementById("total-items");
 }
 
 function displayUserOrders(orders, type) {
-    console.log("display orders triggerd")
+    console.log("display orders triggered");
     console.log("type", type);
     const containerDiv = document.getElementById(`${type}-orders`);
     const resultsDiv = document.getElementById(`${type}-orders-results`);
@@ -315,7 +313,7 @@ function displayUserOrders(orders, type) {
     orders.forEach(order => {
         const statusClass = order.item_status ? 'status-available' : 'status-unavailable';
         const statusText = order.item_status ? '✓ Available' : '✗ Not Available';
-        console.log(order)
+        console.log(order);
         html += `
             <div class="order-card" data-order-id="${order.order_id}">
                 <div class="order-info">
@@ -332,6 +330,113 @@ function displayUserOrders(orders, type) {
     targetDiv.innerHTML = html;
 }
 
+// 新增：显示用户拥有的物品
+function displayUserOwnership(ownershipData) {
+    console.log("displayUserOwnership triggered", ownershipData);
+
+    // 创建结果容器
+    const containerDiv = document.getElementById('ownership-section') ||
+        document.getElementById('user-items') ||
+        document.getElementById('items-section');
+
+    if (!containerDiv) {
+        console.log("No ownership container found");
+        return;
+    }
+
+    // 创建或获取结果显示区域
+    let resultsDiv = document.getElementById('ownership-results');
+    if (!resultsDiv) {
+        resultsDiv = document.createElement('div');
+        resultsDiv.id = 'ownership-results';
+        containerDiv.appendChild(resultsDiv);
+    }
+
+    if (!ownershipData || !ownershipData.data || ownershipData.data.length === 0) {
+        resultsDiv.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <div class="empty-title">No Such item</div>
+                <div class="empty-description">This user hasn't added any item</div>
+            </div>
+        `;
+        // 清除分页
+        const paginationDiv = document.getElementById('ownership-pagination');
+        if (paginationDiv) {
+            paginationDiv.innerHTML = '';
+        }
+        return;
+    }
+
+    let html = '<div class="items-grid">';
+
+    ownershipData.data.forEach(item => {
+        const statusClass = item.status === 'available' ? 'status-available' : 'status-unavailable';
+
+
+        html += `
+            <div class="item-card" data-item-id="${item.itemId}">
+                <div class="item-header">
+                    <h3 class="item-name">${item.itemName || 'UNNAMED'}</h3>
+                </div>
+                <div class="item-body">
+                    <p class="item-description">${item.description || 'NO DESCRIPTION'}</p>
+                </div>
+                <div class="item-footer">
+                    <span class="item-id">ID: #${item.itemId}</span>
+                    ${item.createdAt ? `<span class="item-date">${formatItemDate(item.createdAt)}</span>` : ''}
+                </div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    resultsDiv.innerHTML = html;
+
+    // 使用通用分页函数
+    displayPagination(ownershipData, (newPage, newSize) => {
+        changeOwnershipPage(newPage, newSize);
+    }, {
+        containerId: 'ownership-pagination',
+        containerClass: 'pagination-container',
+        insertAfterId: 'ownership-results'
+    });
+
+    // 添加物品卡片点击事件
+    attachItemCardClickEvents();
+}
+
+// 修改：切换物品所有权页面
+function changeOwnershipPage(page, size = currentOwnershipSize) {
+    currentOwnershipPage = page;
+    currentOwnershipSize = size;
+
+    if (!currentUserId) {
+        console.error('No user ID available');
+        return;
+    }
+
+    const loadingDiv = document.getElementById("loading");
+    if (loadingDiv) {
+        loadingDiv.style.display = "block";
+    }
+
+    fetchUserOwnership(currentUserId, page, size)
+        .then(ownershipData => {
+            if (loadingDiv) {
+                loadingDiv.style.display = 'none';
+            }
+            displayUserOwnership(ownershipData);
+        })
+        .catch(error => {
+            if (loadingDiv) {
+                loadingDiv.style.display = 'none';
+            }
+            console.error('Error changing ownership page:', error);
+        });
+}
+
+// 格式化日期函数
 function formatOrderDate(dateString) {
     if (!dateString) return 'Unknown date';
 
@@ -348,6 +453,42 @@ function formatOrderDate(dateString) {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
+    });
+}
+
+// 新增：格式化物品日期
+function formatItemDate(dateString) {
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now - date;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    if (days < 7) return `${days} days ago`;
+    if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
+    if (days < 365) return `${Math.floor(days / 30)} months ago`;
+
+    return date.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+// 新增：附加物品卡片点击事件
+function attachItemCardClickEvents() {
+    const itemCards = document.querySelectorAll('.item-card');
+    itemCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const itemId = this.dataset.itemId;
+            if (itemId) {
+                console.log('Clicked item:', itemId);
+                // window.location.href = `/items/${itemId}`;
+            }
+        });
     });
 }
 
@@ -372,6 +513,8 @@ function displayUserError(message) {
 
 function refreshUserDetail() {
     if (currentUserId) {
+        currentOrderPage = 1;
+        currentOwnershipPage = 1;
         fetchUserDetail(currentUserId, true);
     }
 }

@@ -97,3 +97,4 @@ function changePageSize(size) {
     currentSize = parseInt(size);
     makeSearchCommon(currentPage || 1, currentSize, false);
 }
+
