@@ -85,7 +85,7 @@ def login_page():
 @auth_bp.route('/add-location')
 @login_required
 def add_location_page():
-    """渲染添加位置页面"""
+
     if g.current_user.locationId:
         return redirect(url_for('main.index'))
     return render_template('auth/add_location.html')
@@ -162,7 +162,7 @@ def signup():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@auth_bp.route('/signin', methods=['POST'])
+@auth_bp.route('/auth/signin', methods=['POST'])
 def signin():
     """用户登录"""
     try:
@@ -215,7 +215,7 @@ def signin():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@auth_bp.route('/logout', methods=['POST'])
+@auth_bp.route('/auth/logout', methods=['POST'])
 @login_required
 def logout():
     """用户登出"""
@@ -253,7 +253,7 @@ def get_current_user():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@auth_bp.route('/location', methods=['POST'])
+@auth_bp.route('/auth/location', methods=['POST'])
 @login_required
 def add_location():
     """添加用户位置"""
@@ -297,7 +297,7 @@ def add_location():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@auth_bp.route('/location', methods=['PUT'])
+@auth_bp.route('/auth/location', methods=['PUT'])
 @login_required
 def update_location():
     """更新用户位置"""
