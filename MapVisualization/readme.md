@@ -38,7 +38,7 @@ All dependencies are loaded via CDN (no installation required):
 
 ## Usage
 
-1. Open `map-locations.html` in a web browser
+1. Open `map.html` in a web browser
 2. Wait for locations to load and geocode (may take a few seconds)
 3. Use filters to narrow down items
 4. Hover over markers to see items
