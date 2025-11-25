@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geocoding Test Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.secondary {
+            background: #6b7280;
+        }
+
+        button.secondary:hover {
+            background: #4b5563;
+        }
+
+        .results {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .results h3 {
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-item.success {
+            border-left-color: #10b981;
+        }
+
+        .result-item.error {
+            border-left-color: #ef4444;
+        }
+
+        .result-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            color: #1f2937;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .coordinates {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .coord-box {
+            background: #ecfdf5;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .coord-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #059669;
+            margin-bottom: 5px;
+        }
+
+        .coord-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #047857;
+        }
+
+        .error-message {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .example {
+            background: #eff6ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #1e40af;
+        }
+
+        .map-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #4285f4;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .map-link:hover {
+            background: #3367d6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Geocoding Test Tool</h1>
+        <p class="subtitle">Test if addresses can be converted to coordinates</p>
+
+        <div class="input-group">
+            <label for="addressInput">Enter Address (one per line) or load from database:</label>
+            <textarea id="addressInput" placeholder="Example:
+1784 Washington Street, Apt 3D, Boston, MA, 02118, USA
+Cambridge, MA, USA
+Boston, MA 02116"></textarea>
+            <div class="example">
+                <strong>💡 Tip:</strong> Click "Load from Supabase" to fetch all locations from your database, or enter addresses manually.
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button onclick="loadFromSupabase()">📥 Load from Supabase</button>
+            <button onclick="testGeocode()">🔍 Test Geocoding</button>
+            <button class="secondary" onclick="clearResults()">🗑️ Clear</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://nrvwkdppdznvorrwhogs.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ydndrZHBwZHpudm9ycndob2dzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0NjkxOTMsImV4cCI6MjA3OTA0NTE5M30.MUzz48qCj_fv01SrhgpWVp_MmdBbueclhQXeS7yqdpo';
+        
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let loadedLocations = [];
+
+        async function loadFromSupabase() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div> Loading locations from Supabase...</div>';
+
+            try {
+                const { data, error } = await supabaseClient
+                    .schema('lendscapev1')
+                    .from('Location')
+                    .select('*');
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    resultsDiv.innerHTML = '<div class="results"><h3>⚠️ No locations found in database</h3></div>';
+                    return;
+                }
+
+                loadedLocations = data;
+
+                // Build address strings
+                const addresses = data.map(loc => {
+                    const parts = [
+                        loc.address,
+                        loc.city,
+                        loc.state,
+                        loc.postcode,
+                        loc.country
+                    ].filter(Boolean);
+                    return parts.join(', ');
+                });
+
+                document.getElementById('addressInput').value = addresses.join('\n');
+                
+                resultsDiv.innerHTML = `
+                    <div class="results">
+                        <h3>✅ Loaded ${data.length} locations from database</h3>
+                        <p style="color: #6b7280; margin-top: 10px;">Click "Test Geocoding" to start geocoding all locations.</p>
+                    </div>
+                `;
+
+            } catch (err) {
+                resultsDiv.innerHTML = `
+                    <div class="results">
+                        <div class="result-item error">
+                            <div class="error-message">❌ Error loading from Supabase: ${err.message}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        async function geocodeAddress(addressString) {
+            try {
+                // Try multiple geocoding strategies
+                const strategies = [
+                    // Strategy 1: Full address as-is
+                    addressString,
+                    // Strategy 2: Remove apartment/unit numbers
+                    addressString.replace(/,?\s*(Apt|Unit|Suite|#)\s*\w+/gi, ''),
+                    // Strategy 3: Just the city, state, zip part (after first comma)
+                    addressString.split(',').slice(-3).join(',').trim()
+                ];
+
+                for (let i = 0; i < strategies.length; i++) {
+                    const query = strategies[i].trim();
+                    if (!query) continue;
+
+                    console.log(`Trying strategy ${i + 1}: "${query}"`);
+
+                    try {
+                        const response = await fetch(
+                            `https://nominatim.openstreetmap.org/search?` +
+                            `format=json&q=${encodeURIComponent(query)}&limit=1`,
+                            {
+                                headers: {
+                                    'User-Agent': 'GeocodingTestTool/1.0'
+                                }
+                            }
+                        );
+
+                        if (!response.ok) {
+                            console.warn(`HTTP ${response.status}`);
+                            continue;
+                        }
+
+                        const results = await response.json();
+
+                        if (results && results.length > 0) {
+                            return {
+                                success: true,
+                                latitude: parseFloat(results[0].lat),
+                                longitude: parseFloat(results[0].lon),
+                                displayName: results[0].display_name,
+                                strategy: i + 1,
+                                query: query
+                            };
+                        }
+                    } catch (err) {
+                        console.warn(`Strategy ${i + 1} failed:`, err);
+                    }
+
+                    // Wait between attempts
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                return {
+                    success: false,
+                    error: 'All geocoding strategies failed'
+                };
+
+            } catch (err) {
+                return {
+                    success: false,
+                    error: err.message
+                };
+            }
+        }
+
+        async function testGeocode() {
+            const input = document.getElementById('addressInput').value.trim();
+            
+            if (!input) {
+                alert('Please enter at least one address or load from Supabase!');
+                return;
+            }
+
+            const addresses = input.split('\n').filter(line => line.trim());
+            const resultsDiv = document.getElementById('results');
+            
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div> Geocoding addresses...</div>';
+
+            let html = '<div class="results"><h3>📍 Geocoding Results</h3>';
+            let successCount = 0;
+            let failCount = 0;
+            const allResults = [];
+
+            for (let i = 0; i < addresses.length; i++) {
+                const address = addresses[i].trim();
+                
+                resultsDiv.innerHTML = `<div class="loading"><div class="spinner"></div> Geocoding ${i + 1} of ${addresses.length}...</div>`;
+
+                const result = await geocodeAddress(address);
+
+                // Track for summary
+                if (result.success) {
+                    successCount++;
+                    allResults.push({
+                        address: address,
+                        lat: result.latitude,
+                        lng: result.longitude
+                    });
+                } else {
+                    failCount++;
+                }
+
+                if (result.success) {
+                    html += `
+                        <div class="result-item success">
+                            <div class="result-label">Location ${i + 1}</div>
+                            <div class="result-value">${address}</div>
+                            
+                            <div class="result-label" style="margin-top: 10px;">Strategy Used</div>
+                            <div class="result-value">Strategy ${result.strategy}: "${result.query}"</div>
+                            
+                            <div class="coordinates">
+                                <div class="coord-box">
+                                    <div class="coord-label">Latitude</div>
+                                    <div class="coord-value">${result.latitude.toFixed(6)}</div>
+                                </div>
+                                <div class="coord-box">
+                                    <div class="coord-label">Longitude</div>
+                                    <div class="coord-value">${result.longitude.toFixed(6)}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="result-label" style="margin-top: 10px;">Matched Location</div>
+                            <div class="result-value">${result.displayName}</div>
+                            
+                            <a href="https://www.google.com/maps?q=${result.latitude},${result.longitude}" 
+                               target="_blank" class="map-link">
+                                📍 Open in Google Maps
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="result-item error">
+                            <div class="result-label">Location ${i + 1}</div>
+                            <div class="result-value">${address}</div>
+                            <div class="error-message">❌ Geocoding Failed: ${result.error}</div>
+                        </div>
+                    `;
+                }
+
+                // Rate limit: 1 second between addresses
+                if (i < addresses.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+
+            // Add summary at the top
+            const summary = `
+                <div class="result-item" style="background: #f0f9ff; border-left-color: #0ea5e9;">
+                    <div class="result-label">Summary</div>
+                    <div class="result-value" style="font-size: 16px; margin-top: 10px;">
+                        ✅ <strong>${successCount}</strong> successful | 
+                        ❌ <strong>${failCount}</strong> failed | 
+                        📊 <strong>${((successCount / addresses.length) * 100).toFixed(1)}%</strong> success rate
+                    </div>
+                    ${allResults.length > 0 ? `
+                        <div style="margin-top: 15px;">
+                            <button onclick="copyCoordinates()" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                                📋 Copy All Coordinates as SQL
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            html = '<div class="results"><h3>📍 Geocoding Results</h3>' + summary + html.substring(32);
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+
+            // Store results globally for copy function
+            window.geocodingResults = allResults;
+        }
+
+        function copyCoordinates() {
+            if (!window.geocodingResults || window.geocodingResults.length === 0) {
+                alert('No coordinates to copy!');
+                return;
+            }
+
+            // Generate SQL UPDATE statements
+            let sql = '-- SQL to update Location table with coordinates\n\n';
+            
+            window.geocodingResults.forEach((result, index) => {
+                const addressParts = result.address.split(',').map(s => s.trim());
+                const city = addressParts[1] || '';
+                
+                sql += `UPDATE lendscapev1."Location" SET latitude = ${result.lat}, longitude = ${result.lng} WHERE city = '${city}';\n`;
+            });
+
+            navigator.clipboard.writeText(sql).then(() => {
+                alert('✅ SQL copied to clipboard! You can paste it in Supabase SQL Editor to update your database.');
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                alert('❌ Copy failed. Check console for SQL output.');
+                console.log(sql);
+            });
+        }
+
+        function clearResults() {
+            document.getElementById('addressInput').value = '';
+            document.getElementById('results').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
