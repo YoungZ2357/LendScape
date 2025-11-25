@@ -1,7 +1,8 @@
-from flask import Blueprint, request, jsonify, render_template
+from flask import request, jsonify, render_template, session
 from app.item import items_bp
 from app.models import User, Item, UserItem, Order, Review
 from app import db
+from app.auth.routes import login_required
 
 
 @items_bp.route("/api/items", methods=['GET'])
@@ -78,8 +79,10 @@ from sqlalchemy import text
 
 
 @items_bp.route("/items/create")
+@login_required
 def create_item_page():
-    return render_template('demo_create_item.html')
+    user_id = session["user_id"]
+    return render_template('demo_create_item.html', user_id=user_id)
 
 
 @items_bp.route("/api/items", methods=["POST"])
@@ -154,37 +157,13 @@ def create_item():
 
 @items_bp.route("/api/items/<int:item_id>", methods=['GET'])
 def get_item_detail(item_id):
-    """获取单个物品详细信息"""
-    try:
-        item = Item.query.filter_by(itemId=item_id).first()
-        if not item:
-            return jsonify({"error": "Item not found"}), 404
+    target = Item.query.get(item_id)
+    data = target.to_dict()
+    return jsonify(data)
 
-        # 获取物品拥有者信息
-        user = User.query.filter_by(userId=item.userId).first()
-        item_dict = item.to_dict()
-        item_dict['owner_name'] = f"{user.firstName} {user.lastName}" if user else "Unknown"
-
-        # 获取物品的评价信息
-        reviews = Review.query.filter_by(itemId=item_id).all()
-        item_dict['reviews'] = [review.to_dict() for review in reviews]
-        item_dict['review_count'] = len(reviews)
-
-        # 计算平均评分
-        if reviews:
-            ratings = [float(r.rating) for r in reviews if r.rating]
-            if ratings:
-                avg_rating = sum(ratings) / len(ratings)
-                item_dict['average_rating'] = round(avg_rating, 2)
-            else:
-                item_dict['average_rating'] = None
-        else:
-            item_dict['average_rating'] = None
-
-        return jsonify(item_dict), 200
-
-    except Exception as e:
-        return jsonify({"error": f"Failed to get item detail: {str(e)}"}), 500
+@items_bp.route("/items/<item_id>")
+def items_detail_page(item_id):
+    return render_template('item_detail.html', item_id=item_id)
 
 
 @items_bp.route("/api/items/<int:item_id>", methods=['PUT'])

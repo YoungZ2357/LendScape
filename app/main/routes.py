@@ -13,5 +13,6 @@ def index():
             session.clear()
 
     return render_template("index.html",
-                           current_user=current_user
+                           current_user=current_user,
+                           user_id = session['user_id'] if "user_id" in session else None
                            )

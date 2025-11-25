@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, render_template
+from flask import Blueprint, request, jsonify, render_template, session
 from app import db
 from app.users import users_bp
 from sqlalchemy import or_
@@ -50,9 +50,6 @@ def get_users():
     })
 
 
-@users_bp.route('/api/users', methods=['POST'])
-def create_user():
-    pass
 
 @users_bp.route('/api/users/<int:userid>', methods=['GET'])
 def get_user_stats(userid: int):
@@ -101,7 +98,6 @@ def build_order_info(orders):
     } for order in new_orders]
 
 
-
 @users_bp.route('/users/<int:userid>', methods=['GET'])
 def user_detail_page(userid):
     """Caution: This page render route contains data query!
@@ -109,6 +105,9 @@ def user_detail_page(userid):
     :param userid:
     :return:
     """
+
+    if "user_id" in session and userid is None:
+        userid = session['user_id']
     user = User.query.filter(User.userId == userid).first()
 
     user_full_name = f"{user.firstName}-{user.lastName}"

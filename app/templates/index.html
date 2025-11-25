@@ -109,7 +109,7 @@
         <div class="nav-links">
             <a href="{{ url_for('items.create_item_page') }}">Create Item</a>
             <a href="/api/my-items">My Items</a>
-            <a href="/api/profile">My Profile</a>
+            <a href="{{ url_for('users.user_detail_page', userid=user_id) }}">My Profile</a>
             <a href="/api/orders">My Orders</a>
         </div>
         {% else %}

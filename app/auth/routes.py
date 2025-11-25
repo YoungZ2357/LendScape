@@ -9,9 +9,6 @@ import secrets
 from sqlalchemy import text
 
 
-
-
-
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):

@@ -330,7 +330,6 @@ function displayUserOrders(orders, type) {
     targetDiv.innerHTML = html;
 }
 
-// 新增：显示用户拥有的物品
 function displayUserOwnership(ownershipData) {
     console.log("displayUserOwnership triggered", ownershipData);
 
@@ -352,58 +351,134 @@ function displayUserOwnership(ownershipData) {
         containerDiv.appendChild(resultsDiv);
     }
 
+    // 开始构建 HTML，首先添加 items-grid 容器
+    let html = '<div class="items-grid">';
+
+    // 始终先添加 "Add New Item" 卡片
+    html += `
+        <div class="add-item-card" onclick="window.location.href='/items/create'">
+            <div class="add-item-content">
+                <div class="add-item-icon">+</div>
+                <div class="add-item-text">Add New Item</div>
+            </div>
+        </div>
+    `;
+
+    // 如果没有物品数据，显示提示信息但保留 Add New Item 卡片
     if (!ownershipData || !ownershipData.data || ownershipData.data.length === 0) {
-        resultsDiv.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">📦</div>
-                <div class="empty-title">No Such item</div>
-                <div class="empty-description">This user hasn't added any item</div>
+        html += `
+            <div style="grid-column: span 3; text-align: center; padding: 40px;">
+                <div class="empty-items-icon" style="font-size: 48px; opacity: 0.5;">📦</div>
+                <div style="color: #666; margin-top: 10px;">No items yet</div>
+                <div style="color: #999; font-size: 14px;">Click "Add New Item" to get started</div>
             </div>
         `;
+    } else {
+        // 添加所有物品卡片
+        ownershipData.data.forEach(item => {
+            const statusClass = item.status === 'available' ? 'available' : 'rented';
+
+            html += `
+                <div class="item-card" data-item-id="${item.itemId}">
+                    <div class="item-image">
+                        ${item.image_url ?
+                `<img src="${item.image_url}" alt="${item.itemName || 'UNNAMED'}">` :
+                '📦'
+            }
+                        <span class="item-status ${statusClass}">
+                            ${item.status === 'available' ? 'Available' : 'Unavailable'}
+                        </span>
+                    </div>
+                    <div class="item-content">
+                        <div class="item-name item-header">
+                            <h3>${item.itemName || 'UNNAMED'}</h3>
+                        </div>
+                        <div class="item-description item-body">
+                            <p>${item.description || 'NO DESCRIPTION'}</p>
+                        </div>
+                        <div class="item-footer">
+                            <div class="item-price">
+                                ${item.price ? `$${item.price} <span>/day</span>` : 'Price not set'}
+                            </div>
+                            <div class="item-actions">
+                                <button class="item-action-btn edit" onclick="editItem(${item.itemId})">Edit</button>
+                                <button class="item-action-btn delete" onclick="deleteItem(${item.itemId})">Delete</button>
+                            </div>
+                        </div>
+                        <div class="item-meta" style="padding: 10px 0; border-top: 1px solid #eee; color: #999; font-size: 12px;">
+                            <span class="item-id">ID: #${item.itemId}</span>
+                            ${item.createdAt ? ` • <span class="item-date">${formatItemDate(item.createdAt)}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    html += '</div>'; // 关闭 items-grid
+    resultsDiv.innerHTML = html;
+
+    // 只有在有数据时才显示分页
+    if (ownershipData && ownershipData.data && ownershipData.data.length > 0) {
+        // 使用通用分页函数
+        displayPagination(ownershipData, (newPage, newSize) => {
+            changeOwnershipPage(newPage, newSize);
+        }, {
+            containerId: 'ownership-pagination',
+            containerClass: 'pagination-container',
+            insertAfterId: 'ownership-results'
+        });
+    } else {
         // 清除分页
         const paginationDiv = document.getElementById('ownership-pagination');
         if (paginationDiv) {
             paginationDiv.innerHTML = '';
         }
-        return;
     }
-
-    let html = '<div class="items-grid">';
-
-    ownershipData.data.forEach(item => {
-        const statusClass = item.status === 'available' ? 'status-available' : 'status-unavailable';
-
-
-        html += `
-            <div class="item-card" data-item-id="${item.itemId}">
-                <div class="item-header">
-                    <h3 class="item-name">${item.itemName || 'UNNAMED'}</h3>
-                </div>
-                <div class="item-body">
-                    <p class="item-description">${item.description || 'NO DESCRIPTION'}</p>
-                </div>
-                <div class="item-footer">
-                    <span class="item-id">ID: #${item.itemId}</span>
-                    ${item.createdAt ? `<span class="item-date">${formatItemDate(item.createdAt)}</span>` : ''}
-                </div>
-            </div>
-        `;
-    });
-
-    html += '</div>';
-    resultsDiv.innerHTML = html;
-
-    // 使用通用分页函数
-    displayPagination(ownershipData, (newPage, newSize) => {
-        changeOwnershipPage(newPage, newSize);
-    }, {
-        containerId: 'ownership-pagination',
-        containerClass: 'pagination-container',
-        insertAfterId: 'ownership-results'
-    });
 
     // 添加物品卡片点击事件
     attachItemCardClickEvents();
+}
+
+// 如果这些函数还不存在，需要添加它们
+function editItem(itemId) {
+    // 编辑物品的逻辑
+    console.log('Edit item:', itemId);
+    window.location.href = `/items/edit/${itemId}`;
+}
+
+function deleteItem(itemId) {
+    // 删除物品的逻辑
+    if (!confirm('Are you sure you want to delete this item?')) {
+        return;
+    }
+
+    console.log('Delete item:', itemId);
+
+    // 调用删除API
+    fetch(`/api/items/${itemId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+        .then(response => {
+            if (response.ok) {
+                alert('Item deleted successfully!');
+                // 刷新页面或重新加载物品列表
+                if (typeof fetchUserDetail === 'function') {
+                    fetchUserDetail();
+                } else if (typeof loadUserItems === 'function') {
+                    loadUserItems();
+                }
+            } else {
+                alert('Failed to delete item. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting item:', error);
+            alert('An error occurred while deleting the item.');
+        });
 }
 
 // 修改：切换物品所有权页面
@@ -486,7 +561,7 @@ function attachItemCardClickEvents() {
             const itemId = this.dataset.itemId;
             if (itemId) {
                 console.log('Clicked item:', itemId);
-                // window.location.href = `/items/${itemId}`;
+                window.location.href = `/items/${itemId}`;
             }
         });
     });
