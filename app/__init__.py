@@ -37,6 +37,8 @@ def create_app():
     from app.auth import auth_bp
     app.register_blueprint(auth_bp)
 
+    from app.locations import locations_bp
+    app.register_blueprint(locations_bp)
     with app.app_context():
         db.create_all()
 

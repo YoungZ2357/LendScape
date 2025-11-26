@@ -12,7 +12,7 @@ def index():
         if not current_user:
             session.clear()
 
-    return render_template("index.html",
+    return render_template("index_design.html",
                            current_user=current_user,
                            user_id = session['user_id'] if "user_id" in session else None
                            )

@@ -10,6 +10,10 @@ let currentOrderSize = 6;
 let currentOwnershipPage = 1;
 let currentOwnershipSize = 8;
 
+// 添加全局变量存储评分状态
+let userRatingLoaded = false;
+let userRatingValue = null;
+
 function makeSearchUser(page = 1, size = 8, resetQuery = false) {
     if (resetQuery) {
         currentQuery = document.getElementById("searchInput").value.trim();
@@ -78,7 +82,7 @@ function displaySearchUser(data) {
             <p>Full Name: ${user.firstName} ${user.lastName}</p>
             <p>Email: ${user.email}</p>
             <p>Location: ${user.location}</p>
-            <p>Status: ${user.status}</p>
+            <p>Status: ${user.is_available}</p>
         </div>
         `;
     });
@@ -250,8 +254,28 @@ function displayUserInfo(userInfo) {
 function displayUserStatistics(statistics) {
     const statsDiv = document.getElementById("profile-stats");
     if (!statsDiv) return;
+
     console.log("displayUserStatistics triggered");
-    console.log(statistics)
+    console.log(statistics);
+
+    // 获取当前的评分元素
+    const currentRatingElement = document.getElementById("user-rating");
+    let currentRatingValue = "Loading...";
+    let isRatingLoaded = false;
+
+    // 保存当前评分值（如果已经加载）
+    if (currentRatingElement) {
+        const ratingLoaded = currentRatingElement.getAttribute('data-rating-loaded') === 'true';
+        if (ratingLoaded) {
+            currentRatingValue = currentRatingElement.textContent;
+            isRatingLoaded = true;
+        } else if (userRatingLoaded && userRatingValue !== null) {
+            // 使用全局存储的评分值
+            currentRatingValue = userRatingValue;
+            isRatingLoaded = true;
+        }
+    }
+
     let html = `
         <div class="stat">
             <div class="stat-value" id="items-count">${statistics.lender_count}</div>
@@ -262,13 +286,21 @@ function displayUserStatistics(statistics) {
             <div class="stat-label">Borrowing</div>
         </div>
         <div class="stat">
-            <div class="stat-value" id="user-rating">TBD</div>
+            <div class="stat-value" id="user-rating" data-rating-loaded="${isRatingLoaded}">${currentRatingValue}</div>
             <div class="stat-label">Rating</div>
         </div>
     `;
 
-    console.log(statistics);
     statsDiv.innerHTML = html;
+
+    // 如果评分已经加载，确保设置正确的属性
+    if (isRatingLoaded && userRatingValue !== null) {
+        const newRatingElement = document.getElementById("user-rating");
+        if (newRatingElement) {
+            newRatingElement.setAttribute('data-rating-loaded', 'true');
+            newRatingElement.textContent = userRatingValue;
+        }
+    }
 
     // 更新侧边栏统计（用户详情页）
     const borrowerCount = document.getElementById("borrower-count");
@@ -283,7 +315,18 @@ function displayUserStatistics(statistics) {
     if (totalOrders) {
         totalOrders.textContent = statistics.borrower_count;
     }
-    const totalItems = document.getElementById("total-items");
+}
+
+// 添加一个全局函数来更新评分（供外部调用）
+function updateUserRating(rating) {
+    userRatingLoaded = true;
+    userRatingValue = rating;
+
+    const ratingElement = document.getElementById("user-rating");
+    if (ratingElement) {
+        ratingElement.textContent = rating;
+        ratingElement.setAttribute('data-rating-loaded', 'true');
+    }
 }
 
 function displayUserOrders(orders, type) {
@@ -311,8 +354,8 @@ function displayUserOrders(orders, type) {
     // 简单显示所有订单
     let html = '';
     orders.forEach(order => {
-        const statusClass = order.item_status ? 'status-available' : 'status-unavailable';
-        const statusText = order.item_status ? '✓ Available' : '✗ Not Available';
+        const statusClass = order.item_status ? 'true' : 'false';
+        const statusText = order.item_status ? '✔ Available' : '✗ Not Available';
         console.log(order);
         html += `
             <div class="order-card" data-order-id="${order.order_id}">
@@ -557,7 +600,13 @@ function formatItemDate(dateString) {
 function attachItemCardClickEvents() {
     const itemCards = document.querySelectorAll('.item-card');
     itemCards.forEach(card => {
-        card.addEventListener('click', function() {
+        card.addEventListener('click', function(e) {
+            // 如果点击的是按钮，不触发卡片点击事件
+            if (e.target.classList.contains('item-action-btn')) {
+                e.stopPropagation();
+                return;
+            }
+
             const itemId = this.dataset.itemId;
             if (itemId) {
                 console.log('Clicked item:', itemId);
@@ -590,6 +639,14 @@ function refreshUserDetail() {
     if (currentUserId) {
         currentOrderPage = 1;
         currentOwnershipPage = 1;
+
+        // 保存当前评分状态
+        const ratingElement = document.getElementById('user-rating');
+        if (ratingElement && ratingElement.getAttribute('data-rating-loaded') === 'true') {
+            userRatingLoaded = true;
+            userRatingValue = ratingElement.textContent;
+        }
+
         fetchUserDetail(currentUserId, true);
     }
 }
@@ -598,5 +655,7 @@ function clearUserDetail() {
     currentUserId = null;
     currentUserData = null;
     currentOrderPage = 1;
+    userRatingLoaded = false;
+    userRatingValue = null;
     window.location.href = '/users';
 }

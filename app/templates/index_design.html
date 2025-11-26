@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LendScape: a peer-to-peer item sharing platform</title>
+    <title>LendScape - Home</title>
     <style>
         * {
             margin: 0;
@@ -14,7 +14,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: #1f2937;
-            overflow-x: hidden;
+            background: #f9fafb;
         }
 
         /* Navigation */
@@ -45,6 +45,8 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            cursor: pointer;
+            text-decoration: none;
         }
 
         .nav-menu {
@@ -67,6 +69,75 @@
         .nav-buttons {
             display: flex;
             gap: 1rem;
+            align-items: center;
+        }
+
+        /* User Info Display */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-name {
+            color: #4b5563;
+            font-weight: 500;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.125rem;
+            cursor: pointer;
+            position: relative;
+        }
+
+        /* Dropdown Menu */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            min-width: 200px;
+            display: none;
+            z-index: 1001;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 10px 16px;
+            color: #4b5563;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .dropdown-menu a:hover {
+            background: #f3f4f6;
+        }
+
+        .dropdown-menu .divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 5px 0;
+        }
+
+        .dropdown-menu .logout {
+            color: #dc3545;
+            cursor: pointer;
         }
 
         .btn {
@@ -102,73 +173,47 @@
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
         }
 
-        /* Hero Section */
-        .hero {
+        /* Main Container */
+        .main-container {
             margin-top: 80px;
             min-height: calc(100vh - 80px);
+        }
+
+        /* Hero Welcome */
+        .hero-welcome {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>');
-            animation: float 20s linear infinite;
-        }
-
-        @keyframes float {
-            from { transform: translateY(0); }
-            to { transform: translateY(-100px); }
-        }
-
-        .hero-container {
-            max-width: 1400px;
-            margin: 0 auto;
             padding: 4rem 2rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-            position: relative;
-            z-index: 1;
-        }
-
-        .hero-content h1 {
-            font-size: 4rem;
+            text-align: center;
             color: white;
-            margin-bottom: 1.5rem;
-            line-height: 1.1;
         }
 
-        .hero-content p {
-            font-size: 1.5rem;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 2.5rem;
-            line-height: 1.6;
+        .hero-welcome h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
         }
 
-        .hero-buttons {
+        .welcome-user {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero-welcome p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .hero-actions {
             display: flex;
-            gap: 1.5rem;
-        }
-
-        .btn-hero {
-            padding: 1rem 2.5rem;
-            font-size: 1.125rem;
+            gap: 1rem;
+            justify-content: center;
         }
 
         .btn-white {
             background: white;
             color: #667eea;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
         }
 
         .btn-white:hover {
@@ -176,322 +221,212 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
 
-        .hero-visual {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
+        /* User Actions Section */
+        .user-actions {
+            padding: 3rem 2rem;
+            background: #f0f4ff;
         }
 
-        .hero-card {
-            background: white;
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            transform: translateY(0);
-            transition: transform 0.3s;
-        }
-
-        .hero-card:hover {
-            transform: translateY(-10px);
-        }
-
-        .hero-card:nth-child(2),
-        .hero-card:nth-child(3) {
-            margin-top: 2rem;
-        }
-
-        .hero-card-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .hero-card h3 {
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
+        .user-actions h3 {
+            text-align: center;
+            margin-bottom: 2rem;
             color: #1f2937;
         }
 
-        .hero-card p {
-            color: #6b7280;
-            font-size: 0.875rem;
-        }
-
-        /* Stats Section */
-        .stats-section {
-            background: white;
-            padding: 4rem 2rem;
-        }
-
-        .stats-container {
-            max-width: 1400px;
+        .user-action-cards {
+            max-width: 1200px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 3rem;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
         }
 
-        .stat-item {
+        .user-action-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
             text-align: center;
+            text-decoration: none;
+            color: #4b5563;
+            transition: all 0.3s;
+            border: 2px solid transparent;
         }
 
-        .stat-number {
-            font-size: 3.5rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
+        .user-action-card:hover {
+            transform: translateY(-3px);
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
         }
 
-        .stat-label {
-            color: #6b7280;
-            font-size: 1.125rem;
+        .user-action-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
         }
 
-        /* Features Section */
-        .features-section {
-            padding: 6rem 2rem;
-            background: #f9fafb;
+        .user-action-title {
+            font-weight: 600;
+            color: #1f2937;
         }
 
+        /* Section Header */
         .section-header {
             text-align: center;
             max-width: 700px;
-            margin: 0 auto 4rem;
+            margin: 0 auto 3rem;
+            padding: 0 2rem;
         }
 
         .section-header h2 {
-            font-size: 3rem;
+            font-size: 2.5rem;
             margin-bottom: 1rem;
             color: #1f2937;
         }
 
         .section-header p {
-            font-size: 1.25rem;
+            font-size: 1.125rem;
             color: #6b7280;
         }
 
+        /* Features Section */
+        .features-section {
+            padding: 5rem 2rem;
+            background: white;
+        }
+
         .features-container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
         }
 
         .feature-card {
-            background: white;
-            padding: 3rem;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            background: #f9fafb;
+            padding: 2.5rem;
+            border-radius: 15px;
             transition: all 0.3s;
         }
 
         .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
         .feature-icon {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 1.75rem;
             margin-bottom: 1.5rem;
         }
 
         .feature-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
+            font-size: 1.375rem;
+            margin-bottom: 0.75rem;
             color: #1f2937;
         }
 
         .feature-card p {
             color: #6b7280;
-            line-height: 1.7;
+            line-height: 1.6;
         }
 
-        /* How It Works */
+        /* How It Works Section */
         .how-it-works {
-            padding: 6rem 2rem;
-            background: white;
+            padding: 5rem 2rem;
+            background: #f9fafb;
         }
 
         .steps-container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 2rem;
-            position: relative;
         }
 
         .step-card {
             text-align: center;
-            position: relative;
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            transition: transform 0.3s;
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
         }
 
         .step-number {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 1.5rem;
             font-weight: bold;
             color: white;
             margin: 0 auto 1.5rem;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
         }
 
         .step-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
             color: #1f2937;
         }
 
         .step-card p {
             color: #6b7280;
-            line-height: 1.6;
+            line-height: 1.5;
+            font-size: 0.95rem;
         }
 
-        /* Categories */
-        .categories-section {
-            padding: 6rem 2rem;
-            background: #f9fafb;
-        }
-
-        .categories-grid {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 1.5rem;
-        }
-
-        .category-card {
+        /* Quick Actions */
+        .quick-actions {
+            padding: 3rem 2rem;
             background: white;
-            padding: 2.5rem 1.5rem;
-            border-radius: 15px;
             text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid transparent;
         }
 
-        .category-card:hover {
-            transform: translateY(-5px);
-            border-color: #667eea;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
-        }
-
-        .category-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .category-name {
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 0.5rem;
-        }
-
-        .category-count {
-            color: #9ca3af;
-            font-size: 0.875rem;
-        }
-
-        /* CTA Section */
-        .cta-section {
-            padding: 6rem 2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            text-align: center;
-            color: white;
-        }
-
-        .cta-section h2 {
-            font-size: 3rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .cta-section p {
-            font-size: 1.5rem;
-            margin-bottom: 2.5rem;
-            opacity: 0.9;
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         /* Footer */
         .footer {
             background: #1f2937;
             color: white;
-            padding: 3rem 2rem 2rem;
-        }
-
-        .footer-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 3rem;
-            margin-bottom: 2rem;
-        }
-
-        .footer-brand h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .footer-brand p {
-            color: #9ca3af;
-            line-height: 1.6;
-        }
-
-        .footer-section h4 {
-            margin-bottom: 1rem;
-            font-size: 1.125rem;
-        }
-
-        .footer-section a {
-            display: block;
-            color: #9ca3af;
-            text-decoration: none;
-            margin-bottom: 0.75rem;
-            transition: color 0.3s;
-        }
-
-        .footer-section a:hover {
-            color: white;
-        }
-
-        .footer-bottom {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding-top: 2rem;
-            border-top: 1px solid #374151;
+            padding: 2rem;
             text-align: center;
+            margin-top: auto;
+        }
+
+        .footer p {
             color: #9ca3af;
         }
 
         /* Responsive */
-        @media (max-width: 1024px) {
-            .hero-container {
-                grid-template-columns: 1fr;
-                text-align: center;
+        @media (max-width: 768px) {
+            .hero-welcome h1, .welcome-user {
+                font-size: 2rem;
             }
 
-            .hero-visual {
-                justify-content: center;
+            .section-header h2 {
+                font-size: 1.75rem;
             }
 
-            .hero-buttons {
-                justify-content: center;
+            .nav-menu {
+                display: none;
             }
 
             .features-container {
@@ -499,45 +434,14 @@
             }
 
             .steps-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .categories-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .hero-content h1 {
-                font-size: 2.5rem;
-            }
-
-            .hero-content p {
-                font-size: 1.125rem;
-            }
-
-            .stats-container {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 2rem;
-            }
-
-            .steps-container {
                 grid-template-columns: 1fr;
             }
 
-            .categories-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .hero-actions {
+                flex-direction: column;
             }
 
-            .footer-container {
-                grid-template-columns: 1fr;
-            }
-
-            .section-header h2 {
-                font-size: 2rem;
-            }
-
-            .nav-menu {
+            .user-name {
                 display: none;
             }
         }
@@ -545,215 +449,221 @@
 </head>
 <body>
 
+<!-- Navigation -->
 <nav class="navbar">
     <div class="nav-container">
-        <div class="logo">📦 LendScape</div>
+        <a href="/" class="logo">📦 LendScape</a>
         <div class="nav-menu">
+            <a href="{{ url_for('items.search_page') }}">Browse Items</a>
+            {% if current_user %}
+            <a href="{{ url_for('items.create_item_page') }}">Create Item</a>
+            {% endif %}
             <a href="#features">Features</a>
             <a href="#how-it-works">How It Works</a>
-            <a href="#categories">Categories</a>
-            <a href="#about">About</a>
         </div>
         <div class="nav-buttons">
-            <a href="#" class="btn btn-outline">Sign In</a>
-            <a href="#" class="btn btn-primary">Get Started</a>
+            {% if current_user %}
+            <div class="user-info">
+                <span class="user-name">Hello, {{ current_user.firstName }}</span>
+                <div class="user-avatar" onclick="toggleDropdown(event)">
+                    {{ current_user.firstName[0] }}{{ current_user.lastName[0] if current_user.lastName else '' }}
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a href="{{ url_for('users.user_detail_page', userid=user_id) }}">My Profile</a>
+                        <a href="{{ url_for('items.create_item_page') }}">Create Item</a>
+                        <a href="/api/my-items">My Items</a>
+                        <a href="/api/orders">My Orders</a>
+                        <div class="divider"></div>
+                        <a onclick="logout()" class="logout">Logout</a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <a href="{{ url_for('auth.login_page') }}" class="btn btn-outline">Sign In</a>
+            <a href="{{ url_for('auth.login_page') }}" class="btn btn-primary">Get Started</a>
+            {% endif %}
         </div>
     </div>
 </nav>
 
-<section class="hero">
-    <div class="hero-container">
-        <div class="hero-content">
-            <h1>Share What You Have, Borrow What You Need</h1>
-            <p>Build sustainable communities by sharing tools, gadgets, and resources with your neighbors.</p>
-            <div class="hero-buttons">
-                <a href="#" class="btn btn-white btn-hero">Explore Items</a>
-                <a href="#" class="btn btn-outline btn-hero" style="color: white; border-color: white;">List an Item</a>
+<!-- Main Container -->
+<div class="main-container">
+
+    <!-- Hero Welcome -->
+    <section class="hero-welcome">
+        {% if current_user %}
+        <h1 class="welcome-user">Welcome back, {{ current_user.firstName }}!</h1>
+        {% else %}
+        <h1>Welcome to LendScape</h1>
+        {% endif %}
+        <p>Share what you have, borrow what you need. Build sustainable communities through sharing.</p>
+        <div class="hero-actions">
+            <a href="{{ url_for('items.search_page') }}" class="btn btn-white">Browse Items</a>
+            {% if current_user %}
+            <a href="{{ url_for('items.create_item_page') }}" class="btn btn-outline" style="color: white; border-color: white;">List Your Item</a>
+            {% else %}
+            <a href="{{ url_for('auth.login_page') }}" class="btn btn-outline" style="color: white; border-color: white;">List an Item</a>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- User Actions Section (显示在登录后) -->
+    {% if current_user %}
+    <section class="user-actions">
+        <h3>Quick Access</h3>
+        <div class="user-action-cards">
+            <a href="{{ url_for('items.create_item_page') }}" class="user-action-card">
+                <div class="user-action-icon">➕</div>
+                <div class="user-action-title">Create Item</div>
+            </a>
+            <a href="/api/my-items" class="user-action-card">
+                <div class="user-action-icon">📦</div>
+                <div class="user-action-title">My Items</div>
+            </a>
+            <a href="{{ url_for('users.user_detail_page', userid=user_id) }}" class="user-action-card">
+                <div class="user-action-icon">👤</div>
+                <div class="user-action-title">My Profile</div>
+            </a>
+            <a href="/api/orders" class="user-action-card">
+                <div class="user-action-icon">📋</div>
+                <div class="user-action-title">My Orders</div>
+            </a>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="section-header">
+            <h2>Why Choose LendScape?</h2>
+            <p>Everything you need for community sharing</p>
+        </div>
+        <div class="features-container">
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>Secure & Trusted</h3>
+                <p>Verified users and secure transactions for peace of mind.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>Save Money</h3>
+                <p>Borrow instead of buying items you only need occasionally.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌱</div>
+                <h3>Eco-Friendly</h3>
+                <p>Reduce waste by sharing resources within your community.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Build Community</h3>
+                <p>Connect with neighbors through shared experiences.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Easy to Use</h3>
+                <p>Simple interface for listing and borrowing items.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Quick Access</h3>
+                <p>Find what you need nearby and get it quickly.</p>
             </div>
         </div>
-        <div class="hero-visual">
-            <div class="hero-card">
-                <div class="hero-card-icon">📷</div>
-                <h3>Camera</h3>
-<!--                <p>Available nearby</p>-->
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="section-header">
+            <h2>How It Works</h2>
+            <p>Start sharing in four simple steps</p>
+        </div>
+        <div class="steps-container">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Sign Up</h3>
+                <p>Create your free account and verify your identity.</p>
             </div>
-            <div class="hero-card">
-                <div class="hero-card-icon">🔨</div>
-                <h3>Power Tools</h3>
-<!--                <p>Ready to borrow</p>-->
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Browse & Search</h3>
+                <p>Find items near you or list your own to share.</p>
             </div>
-            <div class="hero-card">
-                <div class="hero-card-icon">⛺</div>
-                <h3>Camping Gear</h3>
-<!--                <p>Just listed</p>-->
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Request & Arrange</h3>
+                <p>Send a request and coordinate pickup with the owner.</p>
             </div>
-            <div class="hero-card">
-                <div class="hero-card-icon">🎸</div>
-                <h3>Instruments</h3>
-<!--                <p>Popular choice</p>-->
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h3>Use & Return</h3>
+                <p>Enjoy your borrowed item and return it on time.</p>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<section class="stats-section">
-    <div class="stats-container">
-        <div class="stat-item">
-            <div class="stat-number">10K+</div>
-            <div class="stat-label">Active Users</div>
+    <!-- Quick Actions -->
+    <section class="quick-actions">
+        <h3 style="margin-bottom: 2rem; color: #1f2937;">Ready to get started?</h3>
+        <div class="action-buttons">
+            <a href="{{ url_for('items.search_page') }}" class="btn btn-primary">Browse Available Items</a>
+            {% if current_user %}
+            <a href="{{ url_for('items.search_page') }}" class="btn btn-outline">Browse More Items</a>
+            {% else %}
+            <a href="{{ url_for('auth.login_page') }}" class="btn btn-outline">Create Your Account</a>
+            {% endif %}
         </div>
-        <div class="stat-item">
-            <div class="stat-number">50K+</div>
-            <div class="stat-label">Items Shared</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number">200K+</div>
-            <div class="stat-label">Successful Borrows</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number">150+</div>
-            <div class="stat-label">Cities</div>
-        </div>
-    </div>
-</section>
+    </section>
 
-<section class="features-section" id="features">
-    <div class="section-header">
-        <h2>Why Choose LendScape?</h2>
-        <p>Everything you need to build a thriving sharing community</p>
-    </div>
-    <div class="features-container">
-        <div class="feature-card">
-            <div class="feature-icon">🔒</div>
-            <h3>Secure & Trusted</h3>
-            <p>Verified users, secure payments, and comprehensive insurance coverage for peace of mind.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">💰</div>
-            <h3>Save Money</h3>
-            <p>Why buy when you can borrow? Save thousands on tools and equipment you only need occasionally.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">🌱</div>
-            <h3>Eco-Friendly</h3>
-            <p>Reduce waste and carbon footprint by sharing resources within your community.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">👥</div>
-            <h3>Build Community</h3>
-            <p>Connect with neighbors and build lasting relationships through shared experiences.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">📱</div>
-            <h3>Easy to Use</h3>
-            <p>Simple interface makes listing and borrowing items quick and hassle-free.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">⚡</div>
-            <h3>Quick Access</h3>
-            <p>Find what you need nearby and get it today. Most items available within 24 hours.</p>
-        </div>
-    </div>
-</section>
+</div>
 
+<!-- Footer -->
+<footer class="footer">
+    <p>© 2024 LendScape. Building sustainable communities through sharing.</p>
+</footer>
 
-<section class="how-it-works" id="how-it-works">
-    <div class="section-header">
-        <h2>How It Works</h2>
-        <p>Start sharing in four simple steps</p>
-    </div>
-    <div class="steps-container">
-        <div class="step-card">
-            <div class="step-number">1</div>
-            <h3>Sign Up</h3>
-            <p>Create your free account and verify your identity for secure borrowing.</p>
-        </div>
-        <div class="step-card">
-            <div class="step-number">2</div>
-            <h3>Browse & Search</h3>
-            <p>Find items near you or list your own to share with the community.</p>
-        </div>
-        <div class="step-card">
-            <div class="step-number">3</div>
-            <h3>Request & Arrange</h3>
-            <p>Send a request and coordinate pickup with the owner through our chat.</p>
-        </div>
-        <div class="step-card">
-            <div class="step-number">4</div>
-            <h3>Use & Return</h3>
-            <p>Enjoy your borrowed item and return it on time. Rate your experience!</p>
-        </div>
-    </div>
-</section>
+<script>
+    // 切换下拉菜单
+    function toggleDropdown(event) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('dropdownMenu');
+        if (dropdown) {
+            dropdown.classList.toggle('show');
+        }
+    }
 
+    // 点击其他地方关闭下拉菜单
+    document.addEventListener('click', function() {
+        const dropdown = document.getElementById('dropdownMenu');
+        if (dropdown) {
+            dropdown.classList.remove('show');
+        }
+    });
 
-<section class="categories-section" id="categories">
-    <div class="section-header">
-        <h2>Popular Categories</h2>
-        <p>Discover what your community is sharing</p>
-    </div>
-    <div class="categories-grid">
-        <div class="category-card">
-            <div class="category-icon">📱</div>
-            <div class="category-name">Electronics</div>
-            <div class="category-count">2.5K items</div>
-        </div>
-        <div class="category-card">
-            <div class="category-icon">🔧</div>
-            <div class="category-name">Tools</div>
-            <div class="category-count">3.8K items</div>
-        </div>
-        <div class="category-card">
-            <div class="category-icon">⚽</div>
-            <div class="category-name">Sports</div>
-            <div class="category-count">1.9K items</div>
-        </div>
-        <div class="category-card">
-            <div class="category-icon">📚</div>
-            <div class="category-name">Books</div>
-            <div class="category-count">4.2K items</div>
-        </div>
-        <div class="category-card">
-            <div class="category-icon">🏕️</div>
-            <div class="category-name">Outdoor</div>
-            <div class="category-count">1.5K items</div>
-        </div>
-        <div class="category-card">
-            <div class="category-icon">🎨</div>
-            <div class="category-name">Creative</div>
-            <div class="category-count">890 items</div>
-        </div>
-        <div class="category-card">
-            <div class="category-icon">🏠</div>
-            <div class="category-name">Home</div>
-            <div class="category-count">2.1K items</div>
-        </div>
-        <div class="category-card">
-            <div class="category-icon">🎮</div>
-            <div class="category-name">Gaming</div>
-            <div class="category-count">1.3K items</div>
-        </div>
-        <div class="category-card">
-            <div class="category-icon">🚴</div>
-            <div class="category-name">Bikes</div>
-            <div class="category-count">760 items</div>
-        </div>
-        <div class="category-card">
-            <div class="category-icon">🎵</div>
-            <div class="category-name">Music</div>
-            <div class="category-count">650 items</div>
-        </div>
-        <div class="category-card">
-            <div class="category-icon">👶</div>
-            <div class="category-name">Kids</div>
-            <div class="category-count">980 items</div>
-        </div>
-        <div class="category-card">
-            <div class="category-icon">📦</div>
-            <div class="category-name">Other</div>
-            <div class="category-count">1.2K items</div>
-        </div>
-    </div>
-</section>
+    // 登出功能
+    async function logout() {
+        if (!confirm('Are you sure you want to logout?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/auth/logout', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                window.location.href = '/';
+            } else {
+                alert('Logout failed. Please try again.');
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        }
+    }
+</script>
+
 </body>
 </html>

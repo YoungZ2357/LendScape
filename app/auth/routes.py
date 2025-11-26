@@ -341,7 +341,7 @@ def check_auth():
             print(session)
             return jsonify({'authenticated': False}), 200
 
-        user = User.query.filter_by(userId=session['userid']).first()
+        user = User.query.filter_by(userId=session['user_id']).first()
         print(user.to_dict())
         if not user:
             session.clear()

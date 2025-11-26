@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
-# -------------------------------------------------------------------------
-# ProjectName: LendScape
-# FileName: __init__.py.py
-# Date: 2025/11/19 13:34
-# -------------------------------------------------------------------------
+from flask import Blueprint
+
+locations_bp = Blueprint('locations', __name__)
+
+from app.locations import routes

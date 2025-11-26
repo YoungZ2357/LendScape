@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify, render_template, session
 from app import db
 from app.users import users_bp
-from sqlalchemy import or_
-from app.models import User, Location, Order, Item
-from decimal import Decimal
+from sqlalchemy import or_, func
+from app.models import User, Location, Order, Item, Review
+
+from app.auth.routes import login_required
 
 @users_bp.route('/users/search', methods=['GET'])
 def search_page():
@@ -112,6 +113,65 @@ def user_detail_page(userid):
 
     user_full_name = f"{user.firstName}-{user.lastName}"
     user_entity = user.to_dict()
-    return render_template("demo_user_detail.html", title_name=user_full_name, user_entity=user_entity)
+    return render_template("demo_user_detail.html", title_name=user_full_name, user_entity=user_entity, user_id=userid)
 
 
+@users_bp.route('/api/users/current', methods=['GET'])
+@login_required  # 需要导入 from flask_login import login_required, current_user
+def get_current_user():
+    """
+    获取当前登录用户的信息
+    """
+    try:
+        # 从 session 获取用户 ID
+        if 'user_id' not in session:
+            return jsonify({'error': 'Not authenticated'}), 401
+
+        user_id = session['user_id']
+        user = User.query.filter_by(userId=user_id).first()
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        user_dict = user.to_dict()
+        user_dict['locationId'] = user.locationId
+
+        if user.locationId:
+            location = Location.query.get(user.locationId)
+            user_dict['location'] = location.to_dict() if location else None
+
+        return jsonify(user_dict), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@users_bp.route('/api/users/rating/<int:userid>', methods=['GET'])
+@login_required
+def calc_rating(userid):
+
+    try:
+        avg_rating = (
+            db.session.query(func.avg(Review.rating))
+            .join(Order, Review.orderId == Order.orderId)
+            .filter(Order.renterId == userid)
+            .scalar()
+        )
+
+        review_count = (
+            db.session.query(func.count(Review.reviewId))
+            .join(Order, Review.orderId == Order.orderId)
+            .filter(Order.renterId == userid)
+            .scalar()
+        )
+
+        return jsonify({
+            'averageRating': float(avg_rating) if avg_rating is not None else None,
+            'reviewCount': review_count or 0,
+            'userId': userid,
+            'ratingType': 'as_renter'
+        })
+
+    except Exception as e:
+        print(f"Error calculating rating for user {userid}: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500

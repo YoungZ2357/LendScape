@@ -2,26 +2,567 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Item Search</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Search - LendScape</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 主容器 */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        /* 页头部分 */
+        .search-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .search-header h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-subtitle {
+            font-size: 16px;
+            opacity: 0.95;
+            margin-bottom: 30px;
+        }
+
+        /* 搜索区域 */
+        .search-area {
+            display: flex;
+            gap: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        #searchInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        #searchInput:focus {
+            outline: none;
+            background: white;
+            border-color: white;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        #searchInput::placeholder {
+            color: #999;
+        }
+
+        /* 按钮样式 */
+        .search-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        #searchButton {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        #searchButton:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        #clearButton {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #clearButton:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* 返回链接 */
+        .return-link {
+            margin-top: 20px;
+            display: inline-block;
+        }
+
+        .return-link a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: opacity 0.3s;
+        }
+
+        .return-link a:hover {
+            opacity: 1;
+        }
+
+        .return-link a::before {
+            content: '← ';
+            font-size: 18px;
+        }
+
+        /* 内容区域 */
+        .content-area {
+            padding: 40px;
+            background: #f8f9fa;
+        }
+
+        /* 加载状态 */
+        #loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        #loading:not(:empty) {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 搜索结果区域 */
+        #results {
+            min-height: 200px;
+        }
+
+        #results:not(:empty) {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* 物品卡片样式 - 从 demo_user_detail 复制 */
+        .item-card {
+            background: white;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .item-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            position: relative;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .item-status.available {
+            background: #28a745;
+            color: white;
+        }
+
+        .item-status.rented {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .item-content {
+            padding: 20px;
+        }
+
+        .item-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .item-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .item-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .item-price span {
+            font-size: 14px;
+            color: #999;
+            font-weight: normal;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .item-action-btn {
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .item-action-btn.view {
+            background: #e8f4f8;
+            color: #667eea;
+        }
+
+        .item-action-btn.view:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .item-action-btn.rent {
+            background: #d4edda;
+            color: #28a745;
+        }
+
+        .item-action-btn.rent:hover {
+            background: #28a745;
+            color: white;
+        }
+
+        /* 物品所有者信息 */
+        .item-owner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .owner-avatar {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .owner-name {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .item-location {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .item-location::before {
+            content: '📍';
+            font-size: 12px;
+        }
+
+        /* 分页区域 */
+        #pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        #pagination:not(:empty) {
+            padding: 20px;
+            background: white;
+        }
+
+        .pagination-btn, .page-number {
+            padding: 10px 20px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            min-width: 45px;
+            text-align: center;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: #ddd;
+            color: #999;
+        }
+
+        /* 当前页码突出显示 */
+        .page-number {
+            cursor: pointer;
+        }
+
+        .page-number:hover {
+            background: #f0f4ff;
+            border-color: #667eea;
+        }
+
+        .page-number.active {
+            background: #667eea;
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transform: scale(1.1);
+            border-width: 3px;
+        }
+
+        .page-info {
+            color: #666;
+            font-weight: 500;
+            padding: 0 15px;
+        }
+
+        /* 页码省略号 */
+        .page-ellipsis {
+            padding: 10px;
+            color: #999;
+            font-weight: 600;
+        }
+
+        /* 空状态样式 */
+        .empty-items {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-items-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .empty-description {
+            font-size: 14px;
+            color: #999;
+        }
+
+        /* 类别标签 */
+        .item-category {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #f0f4ff;
+            color: #667eea;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .search-header {
+                padding: 30px 20px;
+            }
+
+            .search-header h2 {
+                font-size: 28px;
+            }
+
+            .search-area {
+                flex-direction: column;
+            }
+
+            .search-buttons {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .content-area {
+                padding: 20px;
+            }
+
+            #results:not(:empty) {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 淡入动画 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
 </head>
 
 <body>
-<div>
-    <h2>Item Search</h2>
+<div class="main-container">
+    <!-- 搜索头部 -->
+    <div class="search-header">
+        <h2>🔍 Item Search</h2>
+        <p class="search-subtitle">Discover items available in your neighborhood</p>
 
-    <input id="searchInput" type="text" placeholder="Item Search Demo">
-    <button id="searchButton" onclick="makeSearchCommon(1, 8, true)">Search</button>
-    <button id="clearButton" onclick="clearSearchItem()">Clear search/search without key word</button>
+        <!-- 搜索区域 -->
+        <div class="search-area">
+            <input id="searchInput" type="text" placeholder="Search for items... (e.g., drill, ladder, camera)">
+            <div class="search-buttons">
+                <button id="searchButton" onclick="makeSearchCommon(1, 8, true)">
+                    Search
+                </button>
+                <button id="clearButton" onclick="clearSearchItem()">
+                    Clear / Browse All
+                </button>
+            </div>
+        </div>
 
-    <div style="margin-top: 30px;">
-        <a href="{{ url_for('main.index') }}">Return</a>
+        <!-- 返回链接 -->
+        <div class="return-link">
+            <a href="{{ url_for('main.index') }}">Return to Home</a>
+        </div>
     </div>
 
-    <div id="loading"></div>
-    <div id="results"></div>
-    <div id="pagination"></div>
+    <!-- 内容区域 -->
+    <div class="content-area">
+        <div id="loading"></div>
+        <div id="results"></div>
+        <div id="pagination"></div>
+    </div>
 </div>
 
+<!-- 保持原有的JavaScript引用不变 -->
 <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
 <script src="{{ url_for('static', filename='js/items.js') }}"></script>
 <script>

@@ -16,7 +16,12 @@ class StatusType(enum.Enum):
     pending = 'pending'
     complete = 'complete'
 
-
+class RequestStatus(enum.Enum):
+    PENDING = 'pending'
+    ACCEPTED = 'accepted'
+    REJECTED = 'rejected'
+    CANCELLED = 'cancelled'
+    EXPIRED = 'expired'
 
 
 class User(db.Model):
@@ -179,7 +184,42 @@ class UserItem(db.Model):
             'item_id': self.itemid,
         }
 
-# user_item_association = db.Table('UserItem',
-#     db.Column('userId', db.Integer, db.ForeignKey('User.userid'), primary_key=True),
-#     db.Column('itemId', db.Integer, db.ForeignKey('Item.itemid'), primary_key=True)
-# )
+
+
+class Request(db.Model):
+    __tablename__ = 'Request'
+    __table_args__ = {"extend_existing": True, "schema": "lendscapev1"}
+    requestId = db.Column('requestid', db.Integer, primary_key=True, autoincrement=True)
+    requesterId = db.Column('requesterid', db.Integer, db.ForeignKey('lendscapev1.User.userid'), nullable=False)
+    ownerId = db.Column('ownerid', db.Integer, db.ForeignKey('lendscapev1.User.userid'), nullable=False)
+    itemId = db.Column('itemid', db.Integer, db.ForeignKey('lendscapev1.Item.itemid'), nullable=False)
+    orderId = db.Column('orderid', db.Integer, db.ForeignKey('lendscapev1.Order.orderid'))
+    startDate = db.Column('startdate', db.DateTime, nullable=False)
+    endDate = db.Column('enddate', db.DateTime, nullable=False)
+    message = db.Column('message', db.Text)
+    status = db.Column(
+        'status',
+        Enum(RequestStatus, values_callable=lambda x: [e.value for e in x]),
+        name='request_status'
+    )
+    createdAt = db.Column('createdat', db.DateTime, default=datetime.utcnow)
+    updatedAt = db.Column('updatedat', db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    expiresAt = db.Column('expiresat', db.DateTime)
+    reason = db.Column('reason', db.Text)
+
+    def to_dict(self):
+        return {
+            'requestId': self.requestId,
+            'requesterId': self.requesterId,
+            'ownerId': self.ownerId,
+            'itemId': self.itemId,
+            'orderId': self.orderId,
+            'startDate': self.startDate.isoformat() if self.startDate else None,
+            'endDate': self.endDate.isoformat() if self.endDate else None,
+            'message': self.message,
+            'status': self.status.value if self.status else None,
+            'createdAt': self.createdAt.isoformat() if self.createdAt else None,
+            'updatedAt': self.updatedAt.isoformat() if self.updatedAt else None,
+            'expiresAt': self.expiresAt.isoformat() if self.expiresAt else None,
+            'reason': self.rejectionReason
+        }

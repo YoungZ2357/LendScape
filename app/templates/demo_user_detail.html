@@ -383,7 +383,7 @@
                     <div class="stat-label">Borrowing</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-value" id="user-rating">TBD</div>
+                    <div class="stat-value" id="user-rating" data-rating-loaded="false">Loading...</div>
                     <div class="stat-label">Rating</div>
                 </div>
             </div>
@@ -483,8 +483,8 @@
 
                     <div class="settings-item">
                         <div class="settings-info">
-                            <div class="settings-label">Delivery Address</div>
-                            <div class="settings-description">Update your default delivery address for rentals</div>
+                            <div class="settings-label">Change Address</div>
+                            <div class="settings-description">Update your default address</div>
                         </div>
                         <div class="settings-action">
                             <button class="settings-btn primary" onclick="toggleAddressForm()">Change Address</button>
@@ -564,18 +564,18 @@
         if (currentPath.match(/^\/users\/\d+$/)) {
             console.log('This is a user detail page');
 
-            // 调用fetchUserDetail函数加载用户数据
+            // 调用users.js中的fetchUserDetail函数
             if (typeof fetchUserDetail === 'function') {
                 fetchUserDetail();
             } else {
                 console.error('fetchUserDetail function not found');
             }
 
+            // 独立获取并更新评分（与users.js配合）
+            fetchUserRating();
+
             // 绑定侧边栏导航事件
             setupSidebarNavigation();
-
-            // 加载用户物品
-            loadUserItems();
         } else {
             console.log('Not a user detail page');
         }
@@ -590,14 +590,11 @@
             link.addEventListener('click', function(e) {
                 e.preventDefault();
 
-                // 移除所有active类
                 navLinks.forEach(l => l.classList.remove('active'));
                 sections.forEach(s => s.classList.remove('active'));
 
-                // 添加active类到当前链接
                 this.classList.add('active');
 
-                // 显示对应的section
                 const sectionName = this.dataset.section;
                 const section = document.getElementById(`${sectionName}-section`);
                 if (section) {
@@ -609,17 +606,72 @@
         console.log('Sidebar navigation setup complete');
     }
 
-    // 加载用户物品
-    function loadUserItems() {
-        // This function would typically fetch items from the API
-        // For now, it's a placeholder
-        console.log('Loading user items...');
+    // 获取用户评分 - 与users.js中的updateUserRating函数配合
+    async function fetchUserRating() {
+        console.log("fetchUserRating triggered");
 
-        // Update items count in sidebar
-        const itemsCount = document.getElementById('items-count');
-        if (itemsCount) {
-            // This would be updated with actual data
-            itemsCount.textContent = '1';
+        try {
+            const parts = window.location.pathname.split("/");
+            const userid = parts[parts.length - 1];
+            console.log(`Fetching rating for user: ${userid}`);
+
+            const response = await fetch(`/api/users/rating/${userid}`);
+
+            if (!response.ok) {
+                // 如果API调用失败，更新评分显示
+                if (typeof updateUserRating === 'function') {
+                    updateUserRating("N/A");
+                } else {
+                    // 如果updateUserRating不存在，直接更新元素
+                    const ratingElement = document.getElementById("user-rating");
+                    if (ratingElement) {
+                        ratingElement.textContent = "N/A";
+                        ratingElement.setAttribute('data-rating-loaded', 'true');
+                    }
+                }
+                console.log(`Rating fetch failed: no record`);
+                return;
+            }
+
+            const data = await response.json();
+            console.log("Rating data received:", data);
+
+            const rating = data.averageRating;
+
+            let displayRating;
+            if (rating === null || rating === undefined || rating === 'None' || rating === 'null') {
+                displayRating = "N/A";
+                console.log("No rating available");
+            } else {
+                displayRating = Number(rating).toFixed(2);
+                console.log("Rating formatted:", displayRating);
+            }
+
+            // 使用users.js中的updateUserRating函数更新评分
+            if (typeof updateUserRating === 'function') {
+                updateUserRating(displayRating);
+            } else {
+                // 备用方案：直接更新DOM
+                const ratingElement = document.getElementById("user-rating");
+                if (ratingElement) {
+                    ratingElement.textContent = displayRating;
+                    ratingElement.setAttribute('data-rating-loaded', 'true');
+                }
+            }
+
+        } catch (err) {
+            console.error("Error fetching rating:", err);
+
+            // 错误时更新评分显示
+            if (typeof updateUserRating === 'function') {
+                updateUserRating("Error");
+            } else {
+                const ratingElement = document.getElementById("user-rating");
+                if (ratingElement) {
+                    ratingElement.textContent = "Error";
+                    ratingElement.setAttribute('data-rating-loaded', 'true');
+                }
+            }
         }
     }
 
@@ -630,18 +682,67 @@
     }
 
     // 保存地址
-    function saveAddress() {
+    async function saveAddress() {
         const street = document.getElementById('street').value;
         const city = document.getElementById('city').value;
         const state = document.getElementById('state').value;
         const zip = document.getElementById('zip').value;
 
-        // Here you would typically send this to the API
-        console.log('Saving address:', { street, city, state, zip });
+        // 验证输入
+        if (!street || !city || !state || !zip) {
+            alert('Please fill in all fields');
+            return;
+        }
 
-        // Show success message
-        alert('Address updated successfully!');
-        toggleAddressForm();
+        try {
+            // 获取当前用户的 locationId
+            const userResponse = await fetch('/api/users/current');
+            const userData = await userResponse.json();
+
+            let response;
+            if (userData.locationId) {
+                console.log(userData)
+                // 更新现有地址
+                response = await fetch(`/api/locations/${userData.locationId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        street: street,
+                        city: city,
+                        state: state,
+                        zip: zip,
+                        country: 'USA'
+                    })
+                });
+            } else {
+                response = await fetch('/api/locations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        street: street,
+                        city: city,
+                        state: state,
+                        zip: zip,
+                        country: 'USA'
+                    })
+                });
+            }
+
+            if (response.ok) {
+                const result = await response.json();
+                alert('Address saved successfully!');
+                toggleAddressForm();
+            } else {
+                const error = await response.json();
+                alert('Error: ' + error.error);
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        }
     }
 
     // 登出
@@ -702,10 +803,13 @@
         }
     }
 
-    // 刷新用户详情
+    // 刷新用户详情 - 使用users.js中的函数
     function refreshUserDetail() {
         if (typeof fetchUserDetail === 'function') {
+            // 重新获取用户详情
             fetchUserDetail();
+            // 重新获取评分
+            fetchUserRating();
         }
     }
 </script>
