@@ -39,6 +39,13 @@ def create_app():
 
     from app.locations import locations_bp
     app.register_blueprint(locations_bp)
+
+    from app.request import requests_bp
+    app.register_blueprint(requests_bp)
+
+    from app.order import orders_bp
+    app.register_blueprint(orders_bp)
+
     with app.app_context():
         db.create_all()
 

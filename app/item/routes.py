@@ -158,12 +158,21 @@ def create_item():
 @items_bp.route("/api/items/<int:item_id>", methods=['GET'])
 def get_item_detail(item_id):
     target = Item.query.get(item_id)
+    print(target.to_dict())
     data = target.to_dict()
     return jsonify(data)
 
 @items_bp.route("/items/<item_id>")
 def items_detail_page(item_id):
-    return render_template('item_detail.html', item_id=item_id)
+    current_user = None
+
+    if 'user_id' in session:
+        current_user = User.query.get(session['user_id'])
+
+        if not current_user:
+            session.clear()
+    return render_template('item_detail.html', item_id=item_id, current_user=current_user,
+                           user_id = session['user_id'] if "user_id" in session else None)
 
 
 @items_bp.route("/api/items/<int:item_id>", methods=['PUT'])

@@ -101,19 +101,37 @@ def build_order_info(orders):
 
 @users_bp.route('/users/<int:userid>', methods=['GET'])
 def user_detail_page(userid):
-    """Caution: This page render route contains data query!
 
-    :param userid:
-    :return:
-    """
 
-    if "user_id" in session and userid is None:
+
+    if userid is None and "user_id" in session:
         userid = session['user_id']
-    user = User.query.filter(User.userId == userid).first()
 
-    user_full_name = f"{user.firstName}-{user.lastName}"
+    user = User.query.filter(User.userId == userid).first()
+    if not user:
+        return "User not found", 404
+
+    user_full_name = f"{user.firstName} {user.lastName}"
     user_entity = user.to_dict()
-    return render_template("demo_user_detail.html", title_name=user_full_name, user_entity=user_entity, user_id=userid)
+
+    logged_in_user = None
+    logged_in_user_entity = None
+    logged_in_id = session.get("user_id", None)
+
+    if logged_in_id:
+        logged_in_user = User.query.filter(User.userId == logged_in_id).first()
+        if logged_in_user:
+            logged_in_user_entity = logged_in_user.to_dict()
+
+    is_own_profile = (logged_in_id == userid) if logged_in_id else False
+
+    return render_template("demo_user_detail.html",
+                           title_name=user_full_name,
+                           user_entity=user_entity,
+                           user_id=userid,
+                           logged_in_id=logged_in_id,
+                           logged_in_user=logged_in_user_entity,
+                           is_own_profile=is_own_profile)
 
 
 @users_bp.route('/api/users/current', methods=['GET'])

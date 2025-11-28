@@ -515,15 +515,15 @@
                 <div class="user-action-icon">➕</div>
                 <div class="user-action-title">Create Item</div>
             </a>
-            <a href="/api/my-items" class="user-action-card">
+            <a href="{{ url_for('users.user_detail_page', userid=user_id) }}?section=items" class="user-action-card">
                 <div class="user-action-icon">📦</div>
                 <div class="user-action-title">My Items</div>
             </a>
-            <a href="{{ url_for('users.user_detail_page', userid=user_id) }}" class="user-action-card">
+            <a href="{{ url_for('users.user_detail_page', userid=user_id) }}?section=settings" class="user-action-card">
                 <div class="user-action-icon">👤</div>
                 <div class="user-action-title">My Profile</div>
             </a>
-            <a href="/api/orders" class="user-action-card">
+            <a href="{{ url_for('users.user_detail_page', userid=user_id) }}?section=borrowing" class="user-action-card">
                 <div class="user-action-icon">📋</div>
                 <div class="user-action-title">My Orders</div>
             </a>

@@ -199,13 +199,12 @@ class Request(db.Model):
     message = db.Column('message', db.Text)
     status = db.Column(
         'status',
-        Enum(RequestStatus, values_callable=lambda x: [e.value for e in x]),
-        name='request_status'
+        Enum(RequestStatus, values_callable=lambda x: [e.value for e in x])
     )
     createdAt = db.Column('createdat', db.DateTime, default=datetime.utcnow)
     updatedAt = db.Column('updatedat', db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     expiresAt = db.Column('expiresat', db.DateTime)
-    reason = db.Column('reason', db.Text)
+    rejectionReason = db.Column('rejectionreason', db.Text)
 
     def to_dict(self):
         return {

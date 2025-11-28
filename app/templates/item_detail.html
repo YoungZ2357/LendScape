@@ -241,6 +241,11 @@
             color: white;
         }
 
+        .btn-pending {
+            background: #ffc107;
+            color: #333;
+        }
+
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -384,26 +389,60 @@
             margin: 20px 0;
         }
 
-        .additional-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-
-        .info-item {
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
             display: flex;
             align-items: center;
-            gap: 8px;
-            color: #666;
-            font-size: 14px;
+            justify-content: center;
+            z-index: 1000;
         }
 
-        .info-icon {
-            font-size: 18px;
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-title {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
         }
     </style>
 </head>
@@ -451,6 +490,10 @@
                         <span class="meta-label">Added Date</span>
                         <span class="meta-value" id="item-date">-</span>
                     </div>
+                    <div class="meta-item" id="location-meta" style="display: none;">
+                        <span class="meta-label">Location</span>
+                        <span class="meta-value" id="item-location">-</span>
+                    </div>
                 </div>
 
                 <div class="item-price-display" id="item-price">
@@ -465,9 +508,6 @@
                     No description available.
                 </p>
             </div>
-
-            <!-- 额外信息 -->
-
         </div>
 
         <!-- 右侧：订单信息和操作 -->
@@ -477,7 +517,7 @@
                 <h3 class="section-title">Actions</h3>
                 <div class="action-buttons">
                     <button class="btn btn-primary" id="rent-btn" onclick="rentItem()">
-                        Rent This Item
+                        Request to Rent
                     </button>
                     <button class="btn btn-secondary" id="edit-btn" onclick="editItem()" style="display: none;">
                         Edit Item
@@ -489,7 +529,7 @@
             </div>
 
             <!-- 拥有者信息 -->
-            <div class="owner-info-card">
+            <div class="owner-info-card" data-owner-id="">
                 <h3 class="section-title">Owner Information</h3>
                 <div class="owner-info">
                     <div class="owner-avatar" id="owner-avatar">-</div>
@@ -499,7 +539,7 @@
                     </div>
                 </div>
                 <button class="btn btn-secondary" style="width: 100%; margin-top: 15px;" onclick="contactOwner()">
-                    Contact Owner
+                    View Profile
                 </button>
             </div>
 
@@ -524,21 +564,9 @@
                         <span class="order-label">Borrower:</span>
                         <span class="order-value" id="renter-name">-</span>
                     </div>
-                    <div class="order-detail" style="display: none;">
-                        <span class="order-label">Start Date:</span>
-                        <span class="order-value" id="start-date">-</span>
-                    </div>
-                    <div class="order-detail" style="display: none;">
-                        <span class="order-label">End Date:</span>
-                        <span class="order-value" id="end-date">-</span>
-                    </div>
                     <div class="order-detail">
                         <span class="order-label">Status:</span>
                         <span class="order-status active" id="order-status">Active</span>
-                    </div>
-                    <div class="order-detail" id="review-section" style="display: none;">
-                        <span class="order-label">Review:</span>
-                        <span class="order-value" id="review-status">No review yet</span>
                     </div>
                 </div>
             </div>
@@ -547,8 +575,19 @@
 </div>
 
 <script>
+    // 从Flask模板获取用户信息
+    const currentUserId = {{ user_id | tojson if user_id else 'null' }};
+    const currentUser = {{ current_user.to_dict() | tojson if current_user else 'null' }};
+
+    // 如果有用户ID，存储到sessionStorage供其他操作使用
+    if (currentUserId) {
+        sessionStorage.setItem('user_id', currentUserId);
+        sessionStorage.setItem('userId', currentUserId);  // 兼容两种命名
+    }
+
     // 获取物品ID（从URL中）
     const itemId = window.location.pathname.split('/').pop();
+    let currentItem = null; // 存储当前物品信息
 
     // 页面加载时获取物品详情
     document.addEventListener('DOMContentLoaded', function() {
@@ -557,6 +596,7 @@
 
     // 加载物品详情
     async function loadItemDetails() {
+        console.log("Load item details triggered")
         const loading = document.getElementById('loading');
         const errorDiv = document.getElementById('error-message');
         const detailDiv = document.getElementById('item-detail');
@@ -568,17 +608,20 @@
         try {
             // 获取物品详情
             const response = await fetch(`/api/items/${itemId}`);
+            console.log(`/api/items/${itemId}`)
+            console.log(response)
             if (!response.ok) {
                 throw new Error('Item not found');
             }
 
             const item = await response.json();
+            currentItem = item; // 保存物品信息
 
             // 填充数据（根据ORM模型）
             document.getElementById('item-name').textContent = item.itemName || 'Unnamed Item';
             document.getElementById('item-id').textContent = `#${item.itemId || itemId}`;
             document.getElementById('item-description').textContent = item.description || 'No description available.';
-            document.getElementById('item-price').innerHTML = `${item.price || 0} <span>/day</span>`;
+            document.getElementById('item-price').innerHTML = `$${item.price || 0} <span>/day</span>`;
 
             // 处理图片
             if (item.image_url) {
@@ -616,6 +659,9 @@
             // 检查是否为物品所有者
             checkOwnership(item.userId);
 
+            // 检查是否有待处理的请求
+            await checkPendingRequests(item.itemId);
+
             loading.style.display = 'none';
             detailDiv.style.display = 'grid';
 
@@ -632,18 +678,20 @@
         try {
             const response = await fetch(`/api/users/${userId}`);
             if (response.ok) {
-                const user = await response.json();
-                document.getElementById('owner-name').textContent =
-                    `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
+                const data = await response.json();
+                // 处理新API返回的数据结构
+                const user = data.user_info || data;
+
+                const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() ||
+                    user.username || 'Unknown User';
+
+                document.getElementById('owner-name').textContent = fullName;
                 document.getElementById('owner-email').textContent = user.email || '-';
                 document.getElementById('owner-avatar').textContent =
-                    (user.firstName ? user.firstName[0] : 'U').toUpperCase();
+                    (fullName ? fullName[0] : 'U').toUpperCase();
 
-                // 如果有电话号码，可以显示
-                if (user.phoneNumber) {
-                    // 可以在界面上添加电话显示
-                    console.log('Owner phone:', user.phoneNumber);
-                }
+                // 保存owner ID到data属性
+                document.querySelector('.owner-info-card').dataset.ownerId = userId;
 
                 // 如果有位置信息，更新位置显示
                 if (user.locationId) {
@@ -663,86 +711,247 @@
                 const location = await response.json();
                 const locationText = `${location.city || ''}, ${location.state || ''}`.trim() ||
                     location.country || 'Location not specified';
+
                 document.getElementById('item-location').textContent = locationText;
+                document.getElementById('location-meta').style.display = 'block';
             }
         } catch (error) {
             console.error('Error loading location info:', error);
         }
     }
 
-    // 加载订单信息（基于Order模型）
+    // 改进的加载订单信息函数 - 使用新的API路由
     async function loadOrderInfo(itemId) {
         try {
-            // 获取该物品的所有订单
-            const response = await fetch(`/api/orders?itemId=${itemId}`);
-            if (response.ok) {
-                const orders = await response.json();
-                if (orders && orders.length > 0) {
-                    // 找到状态为pending或complete的订单
-                    const activeOrder = orders.find(o => o.status === 'pending') ||
-                        orders.find(o => o.status === 'complete') ||
-                        orders[0];
-                    if (activeOrder) {
-                        // 获取租赁者和借用者信息
-                        await displayOrderInfoWithUsers(activeOrder);
-                    }
+            // 使用新的订单API路由：/api/orders/item/<item_id>
+            const response = await fetch(`/api/orders/item/${itemId}`);
+
+            if (!response.ok) {
+                console.log('No orders found for this item');
+                // 显示无订单状态
+                document.getElementById('no-order').style.display = 'block';
+                document.getElementById('order-info').style.display = 'none';
+                return;
+            }
+
+            const data = await response.json();
+
+            // 检查是否有订单
+            if (!data.orders || data.orders.length === 0) {
+                document.getElementById('no-order').style.display = 'block';
+                document.getElementById('order-info').style.display = 'none';
+                return;
+            }
+
+            // 找到状态为active或pending的订单（优先显示active）
+            const activeOrder = data.orders.find(o =>
+                o.status === 'active' || o.status === 'complete'
+            );
+            const pendingOrder = data.orders.find(o =>
+                o.status === 'pending'
+            );
+
+            const displayOrder = activeOrder || pendingOrder;
+
+            if (displayOrder) {
+                // 显示订单信息
+                document.getElementById('no-order').style.display = 'none';
+                document.getElementById('order-info').style.display = 'block';
+
+                // 填充订单信息
+                document.getElementById('order-id').textContent = `#${displayOrder.orderId}`;
+
+                // 显示借用者名称（从订单数据中直接获取）
+                if (displayOrder.borrower) {
+                    document.getElementById('renter-name').textContent = displayOrder.borrower.username;
+                } else {
+                    // 如果订单中没有借用者信息，则单独获取
+                    await loadBorrowerInfo(displayOrder.borrowerId);
+                }
+
+                // 更新状态显示
+                updateOrderStatusDisplay(displayOrder.status);
+
+                // 如果有请求信息，可以显示日期
+                if (displayOrder.request) {
+                    addOrderDateInfo(displayOrder.request);
+                }
+            } else {
+                // 只有已完成或已取消的订单
+                document.getElementById('no-order').style.display = 'block';
+                document.getElementById('order-info').style.display = 'none';
+
+                // 可选：显示历史订单数量
+                if (data.summary) {
+                    updateOrderSummary(data.summary);
                 }
             }
+
         } catch (error) {
             console.error('Error loading order info:', error);
-            // 保持显示"无订单"状态
+            document.getElementById('no-order').style.display = 'block';
+            document.getElementById('order-info').style.display = 'none';
         }
     }
 
-    // 显示订单信息（包含用户信息）
-    async function displayOrderInfoWithUsers(order) {
-        if (!order) return;
-
-        document.getElementById('no-order').style.display = 'none';
-        document.getElementById('order-info').style.display = 'block';
-
-        document.getElementById('order-id').textContent = `#${order.orderId}`;
-
-        // 获取借用者信息
+    // 单独加载借用者信息的辅助函数
+    async function loadBorrowerInfo(borrowerId) {
         try {
-            const borrowerResponse = await fetch(`/api/users/${order.borrowerId}`);
-            if (borrowerResponse.ok) {
-                const borrower = await borrowerResponse.json();
-                document.getElementById('renter-name').textContent =
-                    `${borrower.firstName || ''} ${borrower.lastName || ''}`.trim() || 'User #' + order.borrowerId;
+            const response = await fetch(`/api/users/${borrowerId}`);
+            if (response.ok) {
+                const data = await response.json();
+                const user = data.user_info || data;
+                const borrowerName = `${user.firstName || ''} ${user.lastName || ''}`.trim() ||
+                    user.username || `User #${borrowerId}`;
+                document.getElementById('renter-name').textContent = borrowerName;
             } else {
-                document.getElementById('renter-name').textContent = `User #${order.borrowerId}`;
+                document.getElementById('renter-name').textContent = `User #${borrowerId}`;
             }
         } catch (error) {
-            document.getElementById('renter-name').textContent = `User #${order.borrowerId}`;
+            document.getElementById('renter-name').textContent = `User #${borrowerId}`;
         }
-
-        // 状态显示（基于StatusType enum）
-        const statusElement = document.getElementById('order-status');
-        if (order.status === 'pending') {
-            statusElement.textContent = 'Pending';
-            statusElement.className = 'order-status pending';
-            document.getElementById('status-badge').textContent = 'Rented';
-            document.getElementById('status-badge').className = 'item-status-badge rented';
-            document.getElementById('rent-btn').disabled = true;
-            document.getElementById('rent-btn').textContent = 'Currently Rented';
-        } else if (order.status === 'complete') {
-            statusElement.textContent = 'Completed';
-            statusElement.className = 'order-status completed';
-        }
-
-        // 暂时隐藏日期字段（ORM中没有日期字段）
-        document.getElementById('start-date').parentElement.style.display = 'none';
-        document.getElementById('end-date').parentElement.style.display = 'none';
     }
 
-    // 检查是否为物品所有者（使用localStorage或session中的userId）
+    // 更新订单状态显示的辅助函数
+    function updateOrderStatusDisplay(status) {
+        const statusElement = document.getElementById('order-status');
+        const statusBadge = document.getElementById('status-badge');
+        const rentBtn = document.getElementById('rent-btn');
+
+        // 处理枚举值或字符串
+        const statusValue = typeof status === 'object' ? status.value : status;
+
+        switch(statusValue) {
+            case 'pending':
+                statusElement.textContent = 'Pending';
+                statusElement.className = 'order-status pending';
+                statusBadge.textContent = 'Reserved';
+                statusBadge.className = 'item-status-badge rented';
+                rentBtn.disabled = true;
+                rentBtn.textContent = 'Currently Unavailable';
+                break;
+            case 'active':
+                statusElement.textContent = 'Active';
+                statusElement.className = 'order-status active';
+                statusBadge.textContent = 'Rented';
+                statusBadge.className = 'item-status-badge rented';
+                rentBtn.disabled = true;
+                rentBtn.textContent = 'Currently Unavailable';
+                break;
+            case 'complete':
+                statusElement.textContent = 'Completed';
+                statusElement.className = 'order-status completed';
+                break;
+            case 'cancelled':
+                statusElement.textContent = 'Cancelled';
+                statusElement.className = 'order-status cancelled';
+                break;
+            default:
+                statusElement.textContent = statusValue || 'Unknown';
+                statusElement.className = 'order-status';
+        }
+    }
+
+    // 添加订单日期信息（如果有请求数据）
+    function addOrderDateInfo(request) {
+        if (!request) return;
+
+        const orderInfo = document.getElementById('order-info');
+
+        // 检查是否已经有日期信息
+        if (!document.getElementById('order-dates')) {
+            const datesHtml = `
+                <div id="order-dates">
+                    <div class="order-detail">
+                        <span class="order-label">Start Date:</span>
+                        <span class="order-value" id="order-start-date">-</span>
+                    </div>
+                    <div class="order-detail">
+                        <span class="order-label">End Date:</span>
+                        <span class="order-value" id="order-end-date">-</span>
+                    </div>
+                </div>
+            `;
+            orderInfo.insertAdjacentHTML('beforeend', datesHtml);
+        }
+
+        if (request.startDate) {
+            const startDate = new Date(request.startDate);
+            document.getElementById('order-start-date').textContent = startDate.toLocaleDateString();
+        }
+
+        if (request.endDate) {
+            const endDate = new Date(request.endDate);
+            document.getElementById('order-end-date').textContent = endDate.toLocaleDateString();
+        }
+    }
+
+    // 更新订单统计摘要（可选功能）
+    function updateOrderSummary(summary) {
+        if (!summary) return;
+
+        const noOrderDiv = document.getElementById('no-order');
+
+        // 添加历史订单统计
+        const summaryHtml = `
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                <p style="font-size: 14px; color: #666; margin: 5px 0;">
+                    <strong>Order History:</strong>
+                </p>
+                ${summary.complete > 0 ? `<p style="font-size: 13px; color: #999; margin: 3px 0;">✓ ${summary.complete} completed</p>` : ''}
+                ${summary.cancelled > 0 ? `<p style="font-size: 13px; color: #999; margin: 3px 0;">✗ ${summary.cancelled} cancelled</p>` : ''}
+                ${summary.total_orders > 0 ? `<p style="font-size: 13px; color: #999; margin: 3px 0;">Total: ${summary.total_orders} orders</p>` : ''}
+            </div>
+        `;
+
+        // 只在有历史订单时显示
+        if (summary.total_orders > 0) {
+            noOrderDiv.insertAdjacentHTML('beforeend', summaryHtml);
+        }
+    }
+
+    // 检查是否有待处理的请求
+    async function checkPendingRequests(itemId) {
+        try {
+            // 使用从Flask传递的currentUserId或从存储获取
+            const userId = currentUserId ||
+                localStorage.getItem('userId') ||
+                sessionStorage.getItem('userId');
+
+            if (!userId) return;
+
+            // 获取用户的请求
+            const response = await fetch(`/api/requests/${userId}`);
+            if (!response.ok) return;
+
+            const data = await response.json();
+            const sentRequests = data.sent || [];
+
+            // 检查是否已经对这个物品发送了请求
+            const existingRequest = sentRequests.find(req =>
+                req.itemId === parseInt(itemId) &&
+                req.status === 'PENDING'
+            );
+
+            if (existingRequest) {
+                const rentBtn = document.getElementById('rent-btn');
+                rentBtn.textContent = 'Request Pending';
+                rentBtn.disabled = true;
+                rentBtn.className = 'btn btn-pending';
+            }
+        } catch (error) {
+            console.error('Error checking pending requests:', error);
+        }
+    }
+
+    // 检查是否为物品所有者
     function checkOwnership(ownerId) {
-        // 从localStorage、sessionStorage或cookie获取当前用户ID
-        const currentUserId = localStorage.getItem('userId') ||
+        // 使用从Flask传递的currentUserId，或从存储中获取
+        const userId = currentUserId ||
+            localStorage.getItem('userId') ||
             sessionStorage.getItem('userId');
 
-        if (currentUserId && parseInt(currentUserId) === ownerId) {
+        if (userId && parseInt(userId) === ownerId) {
             // 是物品所有者，显示编辑和删除按钮
             document.getElementById('rent-btn').style.display = 'none';
             document.getElementById('edit-btn').style.display = 'block';
@@ -755,72 +964,179 @@
         }
     }
 
-    // 租赁物品（创建新订单）
+    // 改进的租赁物品函数（使用Request系统）
     async function rentItem() {
-        if (!confirm('Would you like to rent this item?')) {
-            return;
-        }
+        // 使用从Flask传递的currentUserId或从存储获取
+        const userId = currentUserId ||
+            localStorage.getItem('user_id') ||
+            sessionStorage.getItem('user_id');
 
-        const currentUserId = localStorage.getItem('userId') ||
-            sessionStorage.getItem('userId');
+        console.log('Current User ID:', userId);
+        console.log('Session Storage:', sessionStorage);
+        console.log('Local Storage:', localStorage);
 
-        if (!currentUserId) {
+        if (!userId) {
             alert('Please login to rent this item.');
             window.location.href = '/auth/login';
             return;
         }
 
-        try {
-            // 根据Order模型，创建新订单
-            const orderData = {
-                itemId: parseInt(itemId),
-                borrowerId: parseInt(currentUserId),
-                renterId: null, // 将从物品信息中获取
-                status: 'pending'
-            };
+        // 创建租赁请求表单模态框
+        const modalHtml = `
+            <div id="rental-modal" class="modal-overlay">
+                <div class="modal-content">
+                    <h2 class="modal-title">Request to Rent: ${currentItem.itemName}</h2>
 
-            // 先获取物品信息以获得renterId (物品所有者)
-            const itemResponse = await fetch(`/api/items/${itemId}`);
-            if (itemResponse.ok) {
-                const item = await itemResponse.json();
-                orderData.renterId = item.userId;
+                    <div class="form-group">
+                        <label>Start Date *</label>
+                        <input type="date" id="start-date-input" min="${new Date().toISOString().split('T')[0]}" required>
+                    </div>
 
-                // 创建订单
-                const response = await fetch('/api/orders', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(orderData)
-                });
+                    <div class="form-group">
+                        <label>End Date *</label>
+                        <input type="date" id="end-date-input" min="${new Date().toISOString().split('T')[0]}" required>
+                    </div>
 
-                if (response.ok) {
-                    alert('Rental request sent successfully!');
-                    // 更新物品可用状态
-                    await updateItemAvailability(false);
-                    location.reload();
-                } else {
-                    alert('Failed to create rental request. Please try again.');
-                }
+                    <div class="form-group">
+                        <label>Message to Owner (Optional)</label>
+                        <textarea id="message-input" rows="3" placeholder="Add a message for the owner..."></textarea>
+                    </div>
+
+                    <div class="item-price-display" style="font-size: 20px; text-align: center; margin: 20px 0;">
+                        Total: <span id="total-price">$0</span>
+                        <br>
+                        <small style="color: #999;">($${currentItem.price || 0}/day × <span id="days-count">0</span> days)</small>
+                    </div>
+
+                    <div class="modal-buttons">
+                        <button class="btn btn-secondary" onclick="closeRentalModal()">Cancel</button>
+                        <button class="btn btn-primary" onclick="submitRentalRequest()">Send Request</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // 添加日期变化监听器来更新价格
+        document.getElementById('start-date-input').addEventListener('change', updateTotalPrice);
+        document.getElementById('end-date-input').addEventListener('change', updateTotalPrice);
+    }
+
+    // 更新总价格
+    function updateTotalPrice() {
+        const startDate = document.getElementById('start-date-input').value;
+        const endDate = document.getElementById('end-date-input').value;
+
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+            if (days > 0) {
+                const totalPrice = (currentItem.price || 0) * days;
+                document.getElementById('total-price').textContent = `$${totalPrice.toFixed(2)}`;
+                document.getElementById('days-count').textContent = days;
             }
-        } catch (error) {
-            console.error('Error creating rental:', error);
-            alert('An error occurred. Please try again.');
         }
     }
 
-    // 更新物品可用状态
-    async function updateItemAvailability(isAvailable) {
+    // 关闭租赁模态框
+    window.closeRentalModal = function() {
+        const modal = document.getElementById('rental-modal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+
+    // 提交租赁请求
+    window.submitRentalRequest = async function() {
+        const startDateInput = document.getElementById('start-date-input').value;
+        const endDateInput = document.getElementById('end-date-input').value;
+        const message = document.getElementById('message-input').value;
+
+        // 调试信息
+        console.log('Start Date Input:', startDateInput);
+        console.log('End Date Input:', endDateInput);
+
+        if (!startDateInput || !endDateInput) {
+            alert('Please select both start and end dates.');
+            return;
+        }
+
+        const startDate = new Date(startDateInput);
+        const endDate = new Date(endDateInput);
+
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            alert('Invalid date format. Please select valid dates.');
+            return;
+        }
+
+        if (startDate >= endDate) {
+            alert('End date must be after start date.');
+            return;
+        }
+
         try {
-            await fetch(`/api/items/${itemId}`, {
-                method: 'PATCH',
+
+            const requestData = {
+                itemId: parseInt(itemId),
+                startDate: startDateInput,  // 直接使用输入值 "2025-11-28"
+                endDate: endDateInput,      // 直接使用输入值 "2025-11-29"
+                message: message || ''
+            };
+
+
+            // const requestData = {
+            //     itemId: parseInt(itemId),
+            //     startDate: startDate.toISOString(),
+            //     endDate: endDate.toISOString(),
+            //     message: message || ''
+            // };
+
+
+            // const formatDateTime = (dateStr) => {
+            //     const date = new Date(dateStr);
+            //     const year = date.getFullYear();
+            //     const month = String(date.getMonth() + 1).padStart(2, '0');
+            //     const day = String(date.getDate()).padStart(2, '0');
+            //     return `${year}-${month}-${day} 00:00:00`;
+            // };
+            // const requestData = {
+            //     itemId: parseInt(itemId),
+            //     startDate: formatDateTime(startDateInput),
+            //     endDate: formatDateTime(endDateInput),
+            //     message: message || ''
+            // };
+
+            console.log('Request Data being sent:', requestData);
+
+            const response = await fetch('/api/requests', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ is_available: isAvailable })
+                body: JSON.stringify(requestData)
             });
+
+            const responseData = await response.json();
+            console.log('Response from server:', responseData);
+
+            if (response.ok) {
+                alert('Rental request sent successfully! The owner will review your request.');
+                closeRentalModal();
+                // 更新按钮状态
+                const rentBtn = document.getElementById('rent-btn');
+                rentBtn.textContent = 'Request Pending';
+                rentBtn.disabled = true;
+                rentBtn.className = 'btn btn-pending';
+            } else {
+                console.error('Error response:', responseData);
+                alert(`Failed to send request: ${responseData.error || 'Unknown error'}`);
+            }
         } catch (error) {
-            console.error('Error updating item availability:', error);
+            console.error('Error creating rental request:', error);
+            alert('An error occurred. Please try again.');
         }
     }
 
@@ -857,8 +1173,13 @@
 
     // 联系所有者
     function contactOwner() {
-        alert('Contact feature coming soon!');
-        // 这里可以打开聊天窗口或发送消息
+        const ownerId = document.querySelector('.owner-info-card').dataset.ownerId;
+
+        if (ownerId) {
+            window.location.href = `/users/${ownerId}`;
+        } else {
+            alert('Owner profile is not available.');
+        }
     }
 </script>
 </body>

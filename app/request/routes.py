@@ -61,7 +61,7 @@ def get_request_detail(request_id):
 def make_request():
     try:
         data = request.get_json()
-
+        print(data)
         required_fields = ['itemId', 'startDate', 'endDate']
         for field in required_fields:
             if field not in data:

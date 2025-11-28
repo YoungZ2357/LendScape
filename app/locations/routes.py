@@ -64,3 +64,7 @@ def update_location(location_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+@locations_bp.route('/api/locations/<int:location_id>', methods=['GET'])
+def get_location_detail(location_id):
+    pass

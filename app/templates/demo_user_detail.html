@@ -336,6 +336,231 @@
         .danger-zone .settings-group-title {
             color: #dc3545;
         }
+
+        /* Requests Section Styles */
+        .request-tabs {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+            margin-right: 20px;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #f8f9fa;
+        }
+
+        .requests-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .requests-container.active {
+            display: block;
+        }
+
+        .requests-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .request-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .request-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .request-info {
+            flex: 1;
+        }
+
+        .request-item-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .request-user {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .request-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .request-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .request-status.accepted {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .request-status.rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .request-status.cancelled {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .request-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .request-detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .request-detail-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+        }
+
+        .request-detail-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .request-message {
+            padding: 10px;
+            background: #f0f4ff;
+            border-left: 3px solid #667eea;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .request-message-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .request-message-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .request-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .request-btn.accept {
+            background: #28a745;
+            color: white;
+        }
+
+        .request-btn.accept:hover {
+            background: #218838;
+        }
+
+        .request-btn.reject {
+            background: white;
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+
+        .request-btn.reject:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .request-btn.cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .request-btn.cancel:hover {
+            background: #5a6268;
+        }
+
+        .request-btn.edit {
+            background: white;
+            color: #667eea;
+            border: 1px solid #667eea;
+        }
+
+        .request-btn.edit:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .empty-requests {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-requests-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
@@ -359,7 +584,14 @@
                 🔔
                 <span class="notification-badge"></span>
             </div>
-            <div class="user-avatar" id="nav-avatar">-</div>
+            <!-- 导航栏头像始终显示登录用户的缩写 -->
+            <div class="user-avatar" id="nav-avatar" data-keep="true">
+                {% if logged_in_user %}
+                {{ (logged_in_user.firstName[0] if logged_in_user.firstName else logged_in_user.email[0] if logged_in_user.email else 'U') | upper }}
+                {% else %}
+                -
+                {% endif %}
+            </div>
         </div>
     </div>
 </nav>
@@ -392,24 +624,31 @@
         <nav class="sidebar-nav">
             <a href="#" class="nav-link" data-section="items">
                 <span class="nav-icon">📦</span>
-                My Items
+                {% if logged_in_id == user_id %}
+                    My Items
+                {% else %}
+                    Items
+                {% endif %}
             </a>
             <a href="#" class="nav-link active" data-section="borrowing">
                 <span class="nav-icon">📥</span>
                 Borrowing (<span id="borrower-count">0</span>)
             </a>
+
             <a href="#" class="nav-link" data-section="lending">
                 <span class="nav-icon">📤</span>
                 Lending (<span id="lender-count">0</span>)
             </a>
+            {%if logged_in_id == user_id%}
             <a href="#" class="nav-link" data-section="requests">
                 <span class="nav-icon">📋</span>
-                Requests (TBD)
+                Requests (<span id="requests-count">0</span>)
             </a>
             <a href="#" class="nav-link" data-section="settings">
                 <span class="nav-icon">⚙️</span>
                 Settings
             </a>
+            {%endif%}
         </nav>
     </div>
     <!-- Content Area -->
@@ -420,7 +659,6 @@
             <p>Loading user data...</p>
         </div>
 
-        <!-- Error Message -->
         <div id="error-message" class="error-message"></div>
 
         <!-- My Items Section -->
@@ -432,11 +670,10 @@
                 </button>
             </div>
 
-            <!-- 这里会被 JavaScript 动态填充 -->
             <div id="ownership-results"></div>
         </div>
 
-        <!-- Borrowing Orders Section -->
+
         <div id="borrowing-section" class="orders-section active">
             <div class="content-header">
                 <h1 class="content-title">My Borrowing Orders</h1>
@@ -458,19 +695,39 @@
             <div id="lender-orders-results"></div>
         </div>
 
-        <!-- Requests Section (TBD) -->
+
         <div id="requests-section" class="orders-section">
             <div class="content-header">
-                <h1 class="content-title">Requests</h1>
+                <h1 class="content-title">My Requests</h1>
+                <div class="request-tabs">
+                    <button class="tab-btn active" data-tab="received">
+                        Received (<span id="received-count">0</span>)
+                    </button>
+                    <button class="tab-btn" data-tab="sent">
+                        Sent (<span id="sent-count">0</span>)
+                    </button>
+                </div>
+                <button class="btn btn-primary" onclick="refreshRequests()">
+                    🔄 Refresh
+                </button>
             </div>
-            <div class="empty-state">
-                <div class="empty-icon">📋</div>
-                <div class="empty-title">TBD - Requests Feature</div>
-                <div class="empty-description">This feature is under development</div>
+
+
+            <div id="received-requests" class="requests-container active">
+                <div class="requests-list" id="received-requests-list">
+
+                </div>
+            </div>
+
+
+            <div id="sent-requests" class="requests-container">
+                <div class="requests-list" id="sent-requests-list">
+
+                </div>
             </div>
         </div>
 
-        <!-- Settings Section -->
+
         <div id="settings-section" class="orders-section">
             <div class="content-header">
                 <h1 class="content-title">Settings</h1>
@@ -552,30 +809,27 @@
 </body>
 
 <script>
-    // 用户详情页面初始化脚本
+    let requestsData = {
+        sent: [],
+        received: []
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
         console.log('User detail page loaded');
 
-        // 获取当前页面路径
         const currentPath = window.location.pathname;
         console.log('Current path:', currentPath);
 
-        // 判断是否是用户详情页
         if (currentPath.match(/^\/users\/\d+$/)) {
             console.log('This is a user detail page');
-
-            // 调用users.js中的fetchUserDetail函数
             if (typeof fetchUserDetail === 'function') {
                 fetchUserDetail();
             } else {
                 console.error('fetchUserDetail function not found');
             }
-
-            // 独立获取并更新评分（与users.js配合）
             fetchUserRating();
-
-            // 绑定侧边栏导航事件
             setupSidebarNavigation();
+            initRequestsTabs();
         } else {
             console.log('Not a user detail page');
         }
@@ -599,6 +853,9 @@
                 const section = document.getElementById(`${sectionName}-section`);
                 if (section) {
                     section.classList.add('active');
+                    if (sectionName === 'requests' && !requestsData.loaded) {
+                        fetchUserRequests();
+                    }
                 }
             });
         });
@@ -606,7 +863,360 @@
         console.log('Sidebar navigation setup complete');
     }
 
-    // 获取用户评分 - 与users.js中的updateUserRating函数配合
+    function initRequestsTabs() {
+        const tabBtns = document.querySelectorAll('.request-tabs .tab-btn');
+        const containers = document.querySelectorAll('.requests-container');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                containers.forEach(c => c.classList.remove('active'));
+
+                this.classList.add('active');
+                const tabName = this.dataset.tab;
+                const container = document.getElementById(`${tabName}-requests`);
+                if (container) {
+                    container.classList.add('active');
+                }
+            });
+        });
+    }
+
+    async function fetchUserRequests() {
+        try {
+            const userIdElement = document.getElementById('user-id');
+            let userId = userIdElement ? userIdElement.value : null;
+
+            if (!userId) {
+                const parts = window.location.pathname.split('/');
+                userId = parts[parts.length - 1];
+            }
+
+            const response = await fetch(`/api/requests/${userId}`);
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch requests');
+            }
+
+            const data = await response.json();
+            requestsData = data;
+            requestsData.loaded = true;
+
+            document.getElementById('received-count').textContent = data.total_received || 0;
+            document.getElementById('sent-count').textContent = data.total_sent || 0;
+            document.getElementById('requests-count').textContent = (data.total_received || 0) + (data.total_sent || 0);
+
+            renderReceivedRequests(data.received || []);
+            renderSentRequests(data.sent || []);
+
+        } catch (error) {
+            console.error('Error fetching requests:', error);
+            showRequestsError('Failed to load requests');
+        }
+    }
+
+    function renderReceivedRequests(requests) {
+        const container = document.getElementById('received-requests-list');
+
+        if (!requests || requests.length === 0) {
+            container.innerHTML = `
+                <div class="empty-requests">
+                    <div class="empty-requests-icon">📥</div>
+                    <div class="empty-title">No Received Requests</div>
+                    <div class="empty-description">You haven't received any borrowing requests yet</div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = requests.map(request => `
+            <div class="request-card" onclick="handleRequestClick(${request.requestId}, 'received')">
+                <div class="request-header">
+                    <div class="request-info">
+                        <div class="request-item-name">Item #${request.itemId}</div>
+                        <div class="request-user">From: User #${request.requesterId}</div>
+                    </div>
+                    <span class="request-status ${request.status.toLowerCase()}">${request.status}</span>
+                </div>
+
+                <div class="request-details">
+                    <div class="request-detail-item">
+                        <span class="request-detail-label">Start Date</span>
+                        <span class="request-detail-value">${formatDate(request.startDate)}</span>
+                    </div>
+                    <div class="request-detail-item">
+                        <span class="request-detail-label">End Date</span>
+                        <span class="request-detail-value">${formatDate(request.endDate)}</span>
+                    </div>
+                    <div class="request-detail-item">
+                        <span class="request-detail-label">Duration</span>
+                        <span class="request-detail-value">${calculateDuration(request.startDate, request.endDate)} days</span>
+                    </div>
+                    ${request.orderId ? `
+                    <div class="request-detail-item">
+                        <span class="request-detail-label">Order ID</span>
+                        <span class="request-detail-value">#${request.orderId}</span>
+                    </div>
+                    ` : ''}
+                </div>
+
+                ${request.message ? `
+                <div class="request-message">
+                    <div class="request-message-label">Message</div>
+                    <div class="request-message-text">${escapeHtml(request.message)}</div>
+                </div>
+                ` : ''}
+
+                ${request.rejectionReason ? `
+                <div class="request-message">
+                    <div class="request-message-label">Rejection Reason</div>
+                    <div class="request-message-text">${escapeHtml(request.rejectionReason)}</div>
+                </div>
+                ` : ''}
+
+                ${request.status === 'PENDING' ? `
+                <div class="request-actions">
+                    <button class="request-btn accept" onclick="acceptRequest(${request.requestId}, event)">
+                        ✓ Accept
+                    </button>
+                    <button class="request-btn reject" onclick="rejectRequest(${request.requestId}, event)">
+                        ✗ Reject
+                    </button>
+                </div>
+                ` : ''}
+            </div>
+        `).join('');
+    }
+
+    function renderSentRequests(requests) {
+        const container = document.getElementById('sent-requests-list');
+
+        if (!requests || requests.length === 0) {
+            container.innerHTML = `
+                <div class="empty-requests">
+                    <div class="empty-requests-icon">📤</div>
+                    <div class="empty-title">No Sent Requests</div>
+                    <div class="empty-description">You haven't sent any borrowing requests yet</div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = requests.map(request => `
+            <div class="request-card" onclick="handleRequestClick(${request.requestId}, 'sent')">
+                <div class="request-header">
+                    <div class="request-info">
+                        <div class="request-item-name">Item #${request.itemId}</div>
+                        <div class="request-user">To: User #${request.ownerId}</div>
+                    </div>
+                    <span class="request-status ${request.status.toLowerCase()}">${request.status}</span>
+                </div>
+
+                <div class="request-details">
+                    <div class="request-detail-item">
+                        <span class="request-detail-label">Start Date</span>
+                        <span class="request-detail-value">${formatDate(request.startDate)}</span>
+                    </div>
+                    <div class="request-detail-item">
+                        <span class="request-detail-label">End Date</span>
+                        <span class="request-detail-value">${formatDate(request.endDate)}</span>
+                    </div>
+                    <div class="request-detail-item">
+                        <span class="request-detail-label">Duration</span>
+                        <span class="request-detail-value">${calculateDuration(request.startDate, request.endDate)} days</span>
+                    </div>
+                    ${request.orderId ? `
+                    <div class="request-detail-item">
+                        <span class="request-detail-label">Order ID</span>
+                        <span class="request-detail-value">#${request.orderId}</span>
+                    </div>
+                    ` : ''}
+                </div>
+
+                ${request.message ? `
+                <div class="request-message">
+                    <div class="request-message-label">Message</div>
+                    <div class="request-message-text">${escapeHtml(request.message)}</div>
+                </div>
+                ` : ''}
+
+                ${request.rejectionReason ? `
+                <div class="request-message">
+                    <div class="request-message-label">Rejection Reason</div>
+                    <div class="request-message-text">${escapeHtml(request.rejectionReason)}</div>
+                </div>
+                ` : ''}
+
+                ${request.status === 'PENDING' ? `
+                <div class="request-actions">
+                    <button class="request-btn edit" onclick="editRequest(${request.requestId}, event)">
+                        ✏️ Edit
+                    </button>
+                    <button class="request-btn cancel" onclick="cancelRequest(${request.requestId}, event)">
+                        ✗ Cancel
+                    </button>
+                </div>
+                ` : ''}
+            </div>
+        `).join('');
+    }
+
+    async function acceptRequest(requestId, event) {
+        event.stopPropagation();
+
+        if (!confirm('Are you sure you want to accept this request?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/requests/${requestId}/accept`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                alert('Request accepted successfully!');
+                fetchUserRequests();
+            } else {
+                const error = await response.json();
+                alert(`Failed to accept request: ${error.error}`);
+            }
+        } catch (error) {
+            console.error('Error accepting request:', error);
+            alert('An error occurred while accepting the request');
+        }
+    }
+
+    async function rejectRequest(requestId, event) {
+        event.stopPropagation();
+
+        const reason = prompt('Please provide a reason for rejection (optional):');
+        if (reason === null) {
+            return;
+        }
+        try {
+            const response = await fetch(`/api/requests/${requestId}/reject`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ reason: reason || '' })
+            });
+            if (response.ok) {
+                alert('Request rejected successfully');
+                fetchUserRequests();
+            } else {
+                const error = await response.json();
+                alert(`Failed to reject request: ${error.error}`);
+            }
+        } catch (error) {
+            console.error('Error rejecting request:', error);
+            alert('An error occurred while rejecting the request');
+        }
+    }
+
+    async function cancelRequest(requestId, event) {
+        event.stopPropagation();
+
+        if (!confirm('Are you sure you want to cancel this request?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/requests/${requestId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('Request cancelled successfully');
+                fetchUserRequests();
+            } else {
+                const error = await response.json();
+                alert(`Failed to cancel request: ${error.error}`);
+            }
+        } catch (error) {
+            console.error('Error cancelling request:', error);
+            alert('An error occurred while cancelling the request');
+        }
+    }
+    function editRequest(requestId, event) {
+        event.stopPropagation();
+
+
+        alert(`Edit request #${requestId} - Feature to be implemented`);
+
+        // window.location.href = `/requests/${requestId}/edit`;
+    }
+
+    function handleRequestClick(requestId, type) {
+
+        console.log(`Request #${requestId} clicked (${type})`);
+
+    }
+
+
+    async function fetchRequestDetail(requestId) {
+        try {
+            const response = await fetch(`/api/requests/${requestId}`);
+            if (response.ok) {
+                return await response.json();
+            }
+            throw new Error('Failed to fetch request detail');
+        } catch (error) {
+            console.error('Error fetching request detail:', error);
+            return null;
+        }
+    }
+
+    function refreshRequests() {
+        fetchUserRequests();
+    }
+
+    // 显示错误信息
+    function showRequestsError(message) {
+        const receivedContainer = document.getElementById('received-requests-list');
+        const sentContainer = document.getElementById('sent-requests-list');
+
+        const errorHtml = `
+            <div class="error-message">
+                <span>⚠️ ${message}</span>
+            </div>
+        `;
+
+        receivedContainer.innerHTML = errorHtml;
+        sentContainer.innerHTML = errorHtml;
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+
+    function calculateDuration(startDate, endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    }
+
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
     async function fetchUserRating() {
         console.log("fetchUserRating triggered");
 
@@ -618,11 +1228,9 @@
             const response = await fetch(`/api/users/rating/${userid}`);
 
             if (!response.ok) {
-                // 如果API调用失败，更新评分显示
                 if (typeof updateUserRating === 'function') {
                     updateUserRating("N/A");
                 } else {
-                    // 如果updateUserRating不存在，直接更新元素
                     const ratingElement = document.getElementById("user-rating");
                     if (ratingElement) {
                         ratingElement.textContent = "N/A";
@@ -647,11 +1255,9 @@
                 console.log("Rating formatted:", displayRating);
             }
 
-            // 使用users.js中的updateUserRating函数更新评分
             if (typeof updateUserRating === 'function') {
                 updateUserRating(displayRating);
             } else {
-                // 备用方案：直接更新DOM
                 const ratingElement = document.getElementById("user-rating");
                 if (ratingElement) {
                     ratingElement.textContent = displayRating;
@@ -662,7 +1268,6 @@
         } catch (err) {
             console.error("Error fetching rating:", err);
 
-            // 错误时更新评分显示
             if (typeof updateUserRating === 'function') {
                 updateUserRating("Error");
             } else {
@@ -675,34 +1280,29 @@
         }
     }
 
-    // 切换地址表单
     function toggleAddressForm() {
         const form = document.getElementById('address-form');
         form.classList.toggle('active');
     }
 
-    // 保存地址
     async function saveAddress() {
         const street = document.getElementById('street').value;
         const city = document.getElementById('city').value;
         const state = document.getElementById('state').value;
         const zip = document.getElementById('zip').value;
 
-        // 验证输入
         if (!street || !city || !state || !zip) {
             alert('Please fill in all fields');
             return;
         }
 
         try {
-            // 获取当前用户的 locationId
             const userResponse = await fetch('/api/users/current');
             const userData = await userResponse.json();
 
             let response;
             if (userData.locationId) {
                 console.log(userData)
-                // 更新现有地址
                 response = await fetch(`/api/locations/${userData.locationId}`, {
                     method: 'PUT',
                     headers: {
@@ -745,7 +1345,6 @@
         }
     }
 
-    // 登出
     async function logout() {
         if (!confirm('Are you sure you want to sign out?')) {
             return;
@@ -770,7 +1369,6 @@
         }
     }
 
-    // 确认删除账号
     function confirmDeleteAccount() {
         const confirmText = prompt('This action cannot be undone. Type "DELETE" to confirm:');
 
@@ -781,7 +1379,6 @@
         }
     }
 
-    // 删除账号
     async function deleteAccount() {
         try {
             const response = await fetch('/api/user/delete', {
@@ -803,12 +1400,9 @@
         }
     }
 
-    // 刷新用户详情 - 使用users.js中的函数
     function refreshUserDetail() {
         if (typeof fetchUserDetail === 'function') {
-            // 重新获取用户详情
             fetchUserDetail();
-            // 重新获取评分
             fetchUserRating();
         }
     }

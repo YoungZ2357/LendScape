@@ -110,10 +110,9 @@ function clearSearchUser() {
     clearSearchCommon(makeSearchUser);
 }
 
-// ============ 用户详情相关函数 ============
 
 function fetchUserDetail(userId = null, refresh = false) {
-    // 获取userId
+
     if (!userId) {
         const match = window.location.pathname.match(/\/users\/(\d+)/);
         userId = match ? match[1] : document.getElementById('user-id')?.value;
@@ -134,7 +133,6 @@ function fetchUserDetail(userId = null, refresh = false) {
         loadingDiv.style.display = "block";
     }
 
-    // 并行获取用户详情和物品所有权数据
     Promise.all([
         fetch(fullUrl).then(response => {
             if (!response.ok) {
@@ -150,7 +148,6 @@ function fetchUserDetail(userId = null, refresh = false) {
             }
             currentUserData = userData;
             console.log(userData)
-            // 将物品所有权数据添加到用户数据中
             currentUserData.item_ownership = ownershipData;
 
             displayUserDetail(currentUserData);
@@ -163,7 +160,7 @@ function fetchUserDetail(userId = null, refresh = false) {
         });
 }
 
-// 新增：获取用户物品所有权数据
+
 function fetchUserOwnership(userId, page = 1, size = 8) {
     const routeUrl = `/api/items/ownership/${userId}?page=${page}&size=${size}`;
     const fullUrl = window.location.origin + routeUrl;
@@ -177,7 +174,6 @@ function fetchUserOwnership(userId, page = 1, size = 8) {
         })
         .catch(error => {
             console.error('Error fetching ownership data:', error);
-            // 返回空数据结构，避免影响其他功能
             return { data: [], page: 1, size: 8, total: 0, pages: 0 };
         });
 }
@@ -187,7 +183,6 @@ function displayUserDetail(data) {
     displayUserInfo(data.user_info);
     displayUserStatistics(data.order_statistics);
 
-    // 显示订单（如果页面有对应元素）
     if (document.getElementById('borrowing-section')) {
         console.log("get borrower")
         displayUserOrders(data.borrower_orders, 'borrower');
@@ -196,7 +191,6 @@ function displayUserDetail(data) {
         displayUserOrders(data.lender_orders, 'lender');
     }
 
-    // 新增：显示用户拥有的物品
     if (document.getElementById('items-section')) {
         displayUserOwnership(data.item_ownership);
     }
@@ -218,34 +212,39 @@ function displayUserInfo(userInfo) {
     infoDiv.innerHTML = html;
     console.log(infoDiv.innerHTML);
 
-    // 更新页面标题
     const titleElement = document.getElementById("page-title");
     if (titleElement) {
         titleElement.textContent = userInfo.username;
     }
 
-    // 更新profile name (用户详情页)
     const profileName = document.getElementById("profile-name");
     if (profileName) {
         profileName.textContent = userInfo.username;
         console.log(profileName.textContent);
     }
 
-    // 更新email
     const profileEmail = document.getElementById("profile-email");
     if (profileEmail) {
         profileEmail.textContent = userInfo.email;
     }
 
-    // 更新头像
     const initial = userInfo.username ? userInfo.username.charAt(0).toUpperCase() : '?';
+
     const profileAvatar = document.getElementById("profile-avatar");
     if (profileAvatar) {
         profileAvatar.textContent = initial;
     }
+
     const navAvatar = document.getElementById("nav-avatar");
     if (navAvatar) {
-        navAvatar.textContent = initial;
+        const shouldKeep = navAvatar.dataset.keep === 'true' ||
+            navAvatar.dataset.preserveLoggedIn === 'true';
+
+        if (!shouldKeep && navAvatar.textContent === '-') {
+            console.log('Nav avatar is default, not updating to preserve logged-in user initial');
+        } else if (!shouldKeep) {
+            console.log('Preserving nav-avatar for logged-in user');
+        }
     }
 
     document.title = `${userInfo.username} - User Detail`;
@@ -258,19 +257,16 @@ function displayUserStatistics(statistics) {
     console.log("displayUserStatistics triggered");
     console.log(statistics);
 
-    // 获取当前的评分元素
     const currentRatingElement = document.getElementById("user-rating");
     let currentRatingValue = "Loading...";
     let isRatingLoaded = false;
 
-    // 保存当前评分值（如果已经加载）
     if (currentRatingElement) {
         const ratingLoaded = currentRatingElement.getAttribute('data-rating-loaded') === 'true';
         if (ratingLoaded) {
             currentRatingValue = currentRatingElement.textContent;
             isRatingLoaded = true;
         } else if (userRatingLoaded && userRatingValue !== null) {
-            // 使用全局存储的评分值
             currentRatingValue = userRatingValue;
             isRatingLoaded = true;
         }
@@ -293,7 +289,6 @@ function displayUserStatistics(statistics) {
 
     statsDiv.innerHTML = html;
 
-    // 如果评分已经加载，确保设置正确的属性
     if (isRatingLoaded && userRatingValue !== null) {
         const newRatingElement = document.getElementById("user-rating");
         if (newRatingElement) {
@@ -302,7 +297,6 @@ function displayUserStatistics(statistics) {
         }
     }
 
-    // 更新侧边栏统计（用户详情页）
     const borrowerCount = document.getElementById("borrower-count");
     if (borrowerCount) {
         borrowerCount.textContent = statistics.borrower_count;
@@ -317,7 +311,6 @@ function displayUserStatistics(statistics) {
     }
 }
 
-// 添加一个全局函数来更新评分（供外部调用）
 function updateUserRating(rating) {
     userRatingLoaded = true;
     userRatingValue = rating;
@@ -351,7 +344,6 @@ function displayUserOrders(orders, type) {
         return;
     }
 
-    // 简单显示所有订单
     let html = '';
     orders.forEach(order => {
         const statusClass = order.item_status ? 'true' : 'false';
@@ -376,7 +368,6 @@ function displayUserOrders(orders, type) {
 function displayUserOwnership(ownershipData) {
     console.log("displayUserOwnership triggered", ownershipData);
 
-    // 创建结果容器
     const containerDiv = document.getElementById('ownership-section') ||
         document.getElementById('user-items') ||
         document.getElementById('items-section');
@@ -385,8 +376,6 @@ function displayUserOwnership(ownershipData) {
         console.log("No ownership container found");
         return;
     }
-
-    // 创建或获取结果显示区域
     let resultsDiv = document.getElementById('ownership-results');
     if (!resultsDiv) {
         resultsDiv = document.createElement('div');
@@ -394,33 +383,45 @@ function displayUserOwnership(ownershipData) {
         containerDiv.appendChild(resultsDiv);
     }
 
-    // 开始构建 HTML，首先添加 items-grid 容器
     let html = '<div class="items-grid">';
 
-    // 始终先添加 "Add New Item" 卡片
-    html += `
-        <div class="add-item-card" onclick="window.location.href='/items/create'">
-            <div class="add-item-content">
-                <div class="add-item-icon">+</div>
-                <div class="add-item-text">Add New Item</div>
-            </div>
-        </div>
-    `;
+    const isOwnProfile = document.getElementById('add-item-btn') &&
+        document.getElementById('add-item-btn').style.display !== 'none';
 
-    // 如果没有物品数据，显示提示信息但保留 Add New Item 卡片
-    if (!ownershipData || !ownershipData.data || ownershipData.data.length === 0) {
+    if (isOwnProfile) {
         html += `
-            <div style="grid-column: span 3; text-align: center; padding: 40px;">
-                <div class="empty-items-icon" style="font-size: 48px; opacity: 0.5;">📦</div>
-                <div style="color: #666; margin-top: 10px;">No items yet</div>
-                <div style="color: #999; font-size: 14px;">Click "Add New Item" to get started</div>
+            <div class="add-item-card" onclick="window.location.href='/items/create'">
+                <div class="add-item-content">
+                    <div class="add-item-icon">+</div>
+                    <div class="add-item-text">Add New Item</div>
+                </div>
             </div>
         `;
-    } else {
-        // 添加所有物品卡片
-        ownershipData.data.forEach(item => {
-            const statusClass = item.status === 'available' ? 'available' : 'rented';
+    }
 
+    if (!ownershipData || !ownershipData.data || ownershipData.data.length === 0) {
+        if (isOwnProfile) {
+            html += `
+                <div style="grid-column: span 3; text-align: center; padding: 40px;">
+                    <div class="empty-items-icon" style="font-size: 48px; opacity: 0.5;">📦</div>
+                    <div style="color: #666; margin-top: 10px;">No items yet</div>
+                    <div style="color: #999; font-size: 14px;">Click "Add New Item" to get started</div>
+                </div>
+            `;
+        } else {
+            html += `
+                <div style="grid-column: span 4; text-align: center; padding: 40px;">
+                    <div class="empty-items-icon" style="font-size: 48px; opacity: 0.5;">📦</div>
+                    <div style="color: #666; margin-top: 10px;">This user hasn't added any items yet</div>
+                </div>
+            `;
+        }
+    } else {
+        ownershipData.data.forEach(item => {
+            const statusClass = item.is_available === true ? 'available' : 'rented';
+            console.log("Loading Item Card")
+            console.log(item)
+            console.log(item.status)
             html += `
                 <div class="item-card" data-item-id="${item.itemId}">
                     <div class="item-image">
@@ -428,8 +429,9 @@ function displayUserOwnership(ownershipData) {
                 `<img src="${item.image_url}" alt="${item.itemName || 'UNNAMED'}">` :
                 '📦'
             }
+                        
                         <span class="item-status ${statusClass}">
-                            ${item.status === 'available' ? 'Available' : 'Unavailable'}
+                            ${item.is_available === true ? 'Available' : 'Unavailable'}
                         </span>
                     </div>
                     <div class="item-content">
@@ -443,10 +445,12 @@ function displayUserOwnership(ownershipData) {
                             <div class="item-price">
                                 ${item.price ? `$${item.price} <span>/day</span>` : 'Price not set'}
                             </div>
+                            ${isOwnProfile ? `
                             <div class="item-actions">
                                 <button class="item-action-btn edit" onclick="editItem(${item.itemId})">Edit</button>
                                 <button class="item-action-btn delete" onclick="deleteItem(${item.itemId})">Delete</button>
                             </div>
+                            ` : ''}
                         </div>
                         <div class="item-meta" style="padding: 10px 0; border-top: 1px solid #eee; color: #999; font-size: 12px;">
                             <span class="item-id">ID: #${item.itemId}</span>
@@ -458,12 +462,10 @@ function displayUserOwnership(ownershipData) {
         });
     }
 
-    html += '</div>'; // 关闭 items-grid
+    html += '</div>';
     resultsDiv.innerHTML = html;
 
-    // 只有在有数据时才显示分页
     if (ownershipData && ownershipData.data && ownershipData.data.length > 0) {
-        // 使用通用分页函数
         displayPagination(ownershipData, (newPage, newSize) => {
             changeOwnershipPage(newPage, newSize);
         }, {
@@ -472,33 +474,26 @@ function displayUserOwnership(ownershipData) {
             insertAfterId: 'ownership-results'
         });
     } else {
-        // 清除分页
         const paginationDiv = document.getElementById('ownership-pagination');
         if (paginationDiv) {
             paginationDiv.innerHTML = '';
         }
     }
 
-    // 添加物品卡片点击事件
     attachItemCardClickEvents();
 }
 
-// 如果这些函数还不存在，需要添加它们
 function editItem(itemId) {
-    // 编辑物品的逻辑
     console.log('Edit item:', itemId);
     window.location.href = `/items/edit/${itemId}`;
 }
 
 function deleteItem(itemId) {
-    // 删除物品的逻辑
     if (!confirm('Are you sure you want to delete this item?')) {
         return;
     }
-
     console.log('Delete item:', itemId);
 
-    // 调用删除API
     fetch(`/api/items/${itemId}`, {
         method: 'DELETE',
         headers: {
@@ -508,7 +503,6 @@ function deleteItem(itemId) {
         .then(response => {
             if (response.ok) {
                 alert('Item deleted successfully!');
-                // 刷新页面或重新加载物品列表
                 if (typeof fetchUserDetail === 'function') {
                     fetchUserDetail();
                 } else if (typeof loadUserItems === 'function') {
@@ -524,7 +518,6 @@ function deleteItem(itemId) {
         });
 }
 
-// 修改：切换物品所有权页面
 function changeOwnershipPage(page, size = currentOwnershipSize) {
     currentOwnershipPage = page;
     currentOwnershipSize = size;
@@ -554,7 +547,6 @@ function changeOwnershipPage(page, size = currentOwnershipSize) {
         });
 }
 
-// 格式化日期函数
 function formatOrderDate(dateString) {
     if (!dateString) return 'Unknown date';
 
@@ -574,7 +566,6 @@ function formatOrderDate(dateString) {
     });
 }
 
-// 新增：格式化物品日期
 function formatItemDate(dateString) {
     if (!dateString) return '';
 
@@ -596,12 +587,10 @@ function formatItemDate(dateString) {
     });
 }
 
-// 新增：附加物品卡片点击事件
 function attachItemCardClickEvents() {
     const itemCards = document.querySelectorAll('.item-card');
     itemCards.forEach(card => {
         card.addEventListener('click', function(e) {
-            // 如果点击的是按钮，不触发卡片点击事件
             if (e.target.classList.contains('item-action-btn')) {
                 e.stopPropagation();
                 return;
@@ -640,7 +629,6 @@ function refreshUserDetail() {
         currentOrderPage = 1;
         currentOwnershipPage = 1;
 
-        // 保存当前评分状态
         const ratingElement = document.getElementById('user-rating');
         if (ratingElement && ratingElement.getAttribute('data-rating-loaded') === 'true') {
             userRatingLoaded = true;
