@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Details - LendScape</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .status-badge.pending {
+            color: #856404;
+            background: #fff3cd;
+        }
+
+        .status-badge.accepted {
+            color: #155724;
+            background: #d4edda;
+        }
+
+        .status-badge.rejected {
+            color: #721c24;
+            background: #f8d7da;
+        }
+
+        .status-badge.cancelled {
+            color: #383d41;
+            background: #e2e3e5;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 20px;
+        }
+
+        .request-id {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            font-size: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .info-value a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .info-value a:hover {
+            text-decoration: underline;
+        }
+
+        .message-box {
+            background: white;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .message-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .message-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .rejection-box {
+            background: #fff5f5;
+            border-left: 4px solid #dc3545;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-danger {
+            background: white;
+            color: #dc3545;
+            border: 2px solid #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #dc3545;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-info:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 20px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .timeline-dot.inactive {
+            background: #ddd;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-date {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .timeline-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 5px;
+            top: 30px;
+            bottom: 0;
+            width: 2px;
+            background: #ddd;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* Review Styles */
+        .rating-selector {
+            display: flex;
+            gap: 10px;
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        .rating-selector .star {
+            color: #ddd;
+            transition: color 0.2s;
+        }
+
+        .rating-selector .star:hover,
+        .rating-selector .star.active {
+            color: #ffc107;
+        }
+
+        .rating-selector .star.filled {
+            color: #ffc107;
+        }
+
+        .review-section {
+            background: #fff5f5;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .existing-review {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .review-rating {
+            color: #ffc107;
+            font-size: 18px;
+        }
+
+        .review-date {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .review-content {
+            color: #333;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Loading State -->
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Loading request details...</p>
+    </div>
+
+    <!-- Main Content (Hidden by default) -->
+    <div id="main-content" style="display: none;">
+        <div class="header">
+            <div class="header-content">
+                <a href="#" class="back-btn" onclick="goBack()">
+                    ← Back
+                </a>
+                <span id="status-badge" class="status-badge">Loading...</span>
+            </div>
+            <h1 class="title" id="request-title">Request Details</h1>
+            <div class="request-id">Request #<span id="request-id">-</span></div>
+        </div>
+
+        <div class="content">
+            <!-- Messages -->
+            <div id="message-container"></div>
+
+            <!-- Item Information -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">📦</span>
+                    Item Information
+                </h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Item Name</span>
+                        <span class="info-value">
+                                <a href="#" id="item-link">
+                                    <span id="item-name">-</span>
+                                </a>
+                            </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Item ID</span>
+                        <span class="info-value">#<span id="item-id">-</span></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Daily Rate</span>
+                        <span class="info-value">$<span id="item-price">-</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Request Details -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">📅</span>
+                    Request Details
+                </h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Start Date</span>
+                        <span class="info-value" id="start-date">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">End Date</span>
+                        <span class="info-value" id="end-date">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Duration</span>
+                        <span class="info-value"><span id="duration">-</span> days</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Total Cost</span>
+                        <span class="info-value">$<span id="total-cost">-</span></span>
+                    </div>
+                </div>
+                <div id="request-message-container"></div>
+            </div>
+
+            <!-- User Information -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">👥</span>
+                    User Information
+                </h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Owner</span>
+                        <span class="info-value">
+                                <a href="#" id="owner-link">
+                                    <span id="owner-name">-</span>
+                                </a>
+                                <span id="owner-rating" style="color: #666; font-size: 12px; margin-left: 8px;"></span>
+                            </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Requester</span>
+                        <span class="info-value">
+                                <a href="#" id="requester-link">
+                                    <span id="requester-name">-</span>
+                                </a>
+                                <span id="requester-rating" style="color: #666; font-size: 12px; margin-left: 8px;"></span>
+                            </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Information (if exists) -->
+            <div id="order-section" class="section" style="display: none;">
+                <h2 class="section-title">
+                    <span class="section-icon">🛒</span>
+                    Order Information
+                </h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Order ID</span>
+                        <span class="info-value">
+                                <a href="#" id="order-link">
+                                    #<span id="order-id">-</span>
+                                </a>
+                            </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Order Status</span>
+                        <span class="info-value" id="order-status">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">⏱️</span>
+                    Timeline
+                </h2>
+                <div class="timeline" id="timeline">
+                    <!-- Timeline items will be added dynamically -->
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions" id="actions-container">
+
+            </div>
+            <!-- Review -->
+            <div id="review-button-container"></div>
+
+
+        </div>
+    </div>
+</div>
+
+<!-- Rejection Modal -->
+<div id="rejection-modal" class="modal">
+    <div class="modal-content">
+        <h3 class="modal-title">Reject Request</h3>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label" for="rejection-reason">Rejection Reason (Optional)</label>
+                <textarea id="rejection-reason" class="form-control" rows="4"
+                          placeholder="Please provide a reason for rejecting this request..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeRejectionModal()">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmRejection()">Reject Request</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Request Modal -->
+<div id="edit-modal" class="modal">
+    <div class="modal-content">
+        <h3 class="modal-title">Edit Request</h3>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label" for="edit-start-date">Start Date</label>
+                <input type="date" id="edit-start-date" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="edit-end-date">End Date</label>
+                <input type="date" id="edit-end-date" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="edit-message">Message</label>
+                <textarea id="edit-message" class="form-control" rows="4"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveEditRequest()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Review Modal -->
+<div id="review-modal" class="modal">
+    <div class="modal-content">
+        <h3 class="modal-title">Write a Review</h3>
+        <div class="modal-body">
+            <!-- 星级评分选择器 -->
+            <div class="form-group">
+                <label class="form-label" for="review-rating">Rating</label>
+                <div class="rating-selector" id="rating-selector">
+                    <span class="star" data-rating="1">☆</span>
+                    <span class="star" data-rating="2">☆</span>
+                    <span class="star" data-rating="3">☆</span>
+                    <span class="star" data-rating="4">☆</span>
+                    <span class="star" data-rating="5">☆</span>
+                </div>
+                <input type="hidden" id="review-rating" value="5">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="review-content">Your Review</label>
+                <textarea id="review-content" class="form-control" rows="6"
+                          placeholder="Share your experience with this item and the owner..."></textarea>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeReviewModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitReview()">Submit Review</button>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    let requestData = null;
+    let currentUserId = null;
+    let userRole = null; // 'owner' or 'requester'
+    document.addEventListener("click", function(e) {
+        if (e.target.classList.contains("star")) {
+            const value = parseInt(e.target.getAttribute("data-value"));
+            const stars = document.querySelectorAll("#review-rating .star");
+
+            stars.forEach(star => {
+                const starValue = parseInt(star.getAttribute("data-value"));
+                star.classList.toggle("filled", starValue <= value);
+                star.classList.toggle("active", starValue === value);
+            });
+
+            // store user selection
+            window.selectedRating = value;
+        }
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchCurrentUser();
+        fetchRequestDetail();
+    });
+
+    async function fetchCurrentUser() {
+        try {
+            const response = await fetch('/api/users/current');
+            if (response.ok) {
+                const data = await response.json();
+                currentUserId = data.userId;
+            }
+        } catch (error) {
+            console.error('Error fetching current user:', error);
+        }
+    }
+
+    async function fetchRequestDetail() {
+        const requestId = getRequestId();
+        if (!requestId) {
+            showError('Invalid request ID');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/requests/detail/${requestId}`);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    showError('Request not found');
+                } else if (response.status === 403) {
+                    showError('You do not have permission to view this request');
+                } else {
+                    showError('Failed to load request details');
+                }
+                return;
+            }
+
+            requestData = await response.json();
+            console.log('Request data received:', requestData);
+            await fetchCurrentUser();
+            // Determine user role
+            if (currentUserId === requestData.ownerId) {
+                userRole = 'owner';
+            } else if (currentUserId === requestData.requesterId) {
+                userRole = 'requester';
+            }
+
+            // Check if IDs are valid before fetching additional data
+            const fetchPromises = [];
+
+            if (requestData.itemId && requestData.itemId !== 'undefined') {
+                fetchPromises.push(fetchItemDetail(requestData.itemId));
+            } else {
+                console.error('No valid itemId in request data');
+            }
+
+            if (requestData.ownerId && requestData.requesterId) {
+                fetchPromises.push(fetchUserDetails(requestData.ownerId, requestData.requesterId));
+                fetchPromises.push(fetchUserRatings(requestData.ownerId, requestData.requesterId));
+            } else {
+                console.error('Missing user IDs in request data');
+            }
+
+            if (requestData.orderId && requestData.orderId !== 'undefined') {
+                fetchPromises.push(fetchOrderDetail(requestData.orderId));
+            }
+
+            await Promise.all(fetchPromises);
+
+            displayRequestDetail();
+            displayReviewButton();
+            hideLoading();
+        } catch (error) {
+            console.error('Error fetching request:', error);
+            showError('An error occurred while loading the request');
+        }
+    }
+
+    async function fetchUserRatings(ownerId, requesterId) {
+        if (!ownerId || !requesterId || ownerId === 'undefined' || requesterId === 'undefined') {
+            console.error('Invalid user IDs for ratings:', { ownerId, requesterId });
+            return;
+        }
+
+        try {
+            const [ownerRatingResponse, requesterRatingResponse] = await Promise.all([
+                fetch(`/api/users/rating/${ownerId}`),
+                fetch(`/api/users/rating/${requesterId}`)
+            ]);
+
+            if (ownerRatingResponse.ok) {
+                const ownerRating = await ownerRatingResponse.json();
+                if (ownerRating.averageRating !== null) {
+                    document.getElementById('owner-rating').textContent =
+                        `★ ${ownerRating.averageRating.toFixed(1)} (${ownerRating.reviewCount})`;
+                }
+            }
+
+            if (requesterRatingResponse.ok) {
+                const requesterRating = await requesterRatingResponse.json();
+                if (requesterRating.averageRating !== null) {
+                    document.getElementById('requester-rating').textContent =
+                        `★ ${requesterRating.averageRating.toFixed(1)} (${requesterRating.reviewCount})`;
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching ratings:', error);
+        }
+    }
+
+    async function fetchItemDetail(itemId) {
+        if (!itemId || itemId === 'undefined') {
+            console.error('Invalid item ID:', itemId);
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/items/${itemId}`);
+            if (response.ok) {
+                const data = await response.json();
+                requestData.item = data;
+            } else {
+                console.error('Failed to fetch item:', response.status);
+            }
+        } catch (error) {
+            console.error('Error fetching item:', error);
+        }
+    }
+
+    async function fetchUserDetails(ownerId, requesterId) {
+        if (!ownerId || !requesterId || ownerId === 'undefined' || requesterId === 'undefined') {
+            console.error('Invalid user IDs:', { ownerId, requesterId });
+            return;
+        }
+
+        try {
+            const [ownerResponse, requesterResponse] = await Promise.all([
+                fetch(`/api/users/${ownerId}`),
+                fetch(`/api/users/${requesterId}`)
+            ]);
+
+            if (ownerResponse.ok) {
+                const ownerData = await ownerResponse.json();
+                // 从API响应中提取user_info
+                if (ownerData.user_info) {
+                    requestData.owner = {
+                        userId: ownerData.user_info.userid,
+                        firstName: ownerData.user_info.username.split(' ')[0],
+                        lastName: ownerData.user_info.username.split(' ')[1] || '',
+                        email: ownerData.user_info.email
+                    };
+                }
+            }
+
+            if (requesterResponse.ok) {
+                const requesterData = await requesterResponse.json();
+                // 从API响应中提取user_info
+                if (requesterData.user_info) {
+                    requestData.requester = {
+                        userId: requesterData.user_info.userid,
+                        firstName: requesterData.user_info.username.split(' ')[0],
+                        lastName: requesterData.user_info.username.split(' ')[1] || '',
+                        email: requesterData.user_info.email
+                    };
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    }
+
+    async function fetchOrderDetail(orderId) {
+        try {
+            const response = await fetch(`/api/orders/${orderId}`);
+            if (response.ok) {
+                const data = await response.json();
+                requestData.order = data;
+            }
+        } catch (error) {
+            console.error('Error fetching order:', error);
+        }
+    }
+
+
+
+
+
+    function displayRequestDetail() {
+        // Update header
+        document.getElementById('request-id').textContent = requestData.requestId;
+        document.getElementById('request-title').textContent = requestData.item ?
+            `Request for ${requestData.item.itemName}` : 'Request Details';
+
+        // Update status badge
+        const statusBadge = document.getElementById('status-badge');
+        statusBadge.textContent = requestData.status || 'Unknown';
+        statusBadge.className = `status-badge ${(requestData.status || '').toLowerCase()}`;
+
+        // Update item information
+        if (requestData.item) {
+            document.getElementById('item-name').textContent = requestData.item.itemName;
+            document.getElementById('item-id').textContent = requestData.item.itemId;
+            document.getElementById('item-price').textContent = requestData.item.price || '0';
+            document.getElementById('item-link').href = `/items/${requestData.item.itemId}`;
+        }
+
+        // Update request details
+        const startDate = new Date(requestData.startDate);
+        const endDate = new Date(requestData.endDate);
+        const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+        const totalCost = duration * (requestData.item?.price || 0);
+
+        document.getElementById('start-date').textContent = formatDate(startDate);
+        document.getElementById('end-date').textContent = formatDate(endDate);
+        document.getElementById('duration').textContent = duration;
+        document.getElementById('total-cost').textContent = totalCost.toFixed(2);
+
+        // Display message if exists
+        if (requestData.message) {
+            document.getElementById('request-message-container').innerHTML = `
+                    <div class="message-box">
+                        <div class="message-label">Message from Requester</div>
+                        <div class="message-text">${escapeHtml(requestData.message)}</div>
+                    </div>
+                `;
+        }
+
+        // Display rejection reason if exists (注意字段名是 'reason' 而不是 'rejectionReason')
+        if (requestData.reason && (requestData.status === 'REJECTED' || requestData.status === 'rejected')) {
+            document.getElementById('message-container').innerHTML = `
+                    <div class="rejection-box">
+                        <div class="message-label">Rejection Reason</div>
+                        <div class="message-text">${escapeHtml(requestData.reason)}</div>
+                    </div>
+                `;
+        }
+
+        // Update user information
+        if (requestData.owner) {
+            const ownerName = requestData.owner.firstName && requestData.owner.lastName ?
+                `${requestData.owner.firstName} ${requestData.owner.lastName}` :
+                requestData.owner.email || `User #${requestData.ownerId}`;
+            document.getElementById('owner-name').textContent = ownerName;
+            document.getElementById('owner-link').href = `/users/${requestData.owner.userId || requestData.ownerId}`;
+        } else {
+            document.getElementById('owner-name').textContent = `User #${requestData.ownerId}`;
+            document.getElementById('owner-link').href = `/users/${requestData.ownerId}`;
+        }
+
+        if (requestData.requester) {
+            const requesterName = requestData.requester.firstName && requestData.requester.lastName ?
+                `${requestData.requester.firstName} ${requestData.requester.lastName}` :
+                requestData.requester.email || `User #${requestData.requesterId}`;
+            document.getElementById('requester-name').textContent = requesterName;
+            document.getElementById('requester-link').href = `/users/${requestData.requester.userId || requestData.requesterId}`;
+        } else {
+            document.getElementById('requester-name').textContent = `User #${requestData.requesterId}`;
+            document.getElementById('requester-link').href = `/users/${requestData.requesterId}`;
+        }
+
+        // Update order information if exists
+        if (requestData.orderId && requestData.order) {
+            document.getElementById('order-section').style.display = 'block';
+            document.getElementById('order-id').textContent = requestData.orderId;
+            document.getElementById('order-link').href = `/orders/${requestData.orderId}`;
+            document.getElementById('order-status').textContent = requestData.order.status || 'Unknown';
+        }
+
+        // Display timeline
+        displayTimeline();
+
+        // Display actions based on status and role
+        displayActions();
+
+        document.getElementById('main-content').style.display = 'block';
+    }
+
+    function displayTimeline() {
+        const timeline = document.getElementById('timeline');
+        const events = [];
+
+        // Created event
+        if (requestData.createdAt) {
+            events.push({
+                date: new Date(requestData.createdAt),
+                title: 'Request created',
+                active: true
+            });
+        }
+
+        // Status change events
+        if (requestData.status === 'ACCEPTED' && requestData.updatedAt) {
+            events.push({
+                date: new Date(requestData.updatedAt),
+                title: 'Request accepted',
+                active: true
+            });
+        } else if (requestData.status === 'REJECTED' && requestData.updatedAt) {
+            events.push({
+                date: new Date(requestData.updatedAt),
+                title: 'Request rejected',
+                active: true
+            });
+        } else if (requestData.status === 'CANCELLED' && requestData.updatedAt) {
+            events.push({
+                date: new Date(requestData.updatedAt),
+                title: 'Request cancelled',
+                active: true
+            });
+        }
+
+        // Sort events by date
+        events.sort((a, b) => a.date - b.date);
+
+        // Render timeline
+        timeline.innerHTML = events.map((event, index) => `
+                <div class="timeline-item">
+                    ${index < events.length - 1 ? '<div class="timeline-line"></div>' : ''}
+                    <div class="timeline-dot ${event.active ? '' : 'inactive'}"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">${formatDateTime(event.date)}</div>
+                        <div class="timeline-title">${event.title}</div>
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    function displayActions() {
+        const container = document.getElementById('actions-container');
+        const actions = [];
+        console.log("userRole", userRole);
+        if (requestData.status === 'PENDING' || requestData.status === 'pending') {
+            if (userRole === 'owner') {
+                actions.push(`
+                        <button class="btn btn-primary" onclick="acceptRequest()">
+                            ✓ Accept Request
+                        </button>
+                    `);
+                actions.push(`
+                        <button class="btn btn-danger" onclick="openRejectionModal()">
+                            ✗ Reject Request
+                        </button>
+                    `);
+            } else if (userRole === 'requester') {
+                actions.push(`
+                        <button class="btn btn-info" onclick="openEditModal()">
+                            ✏️ Edit Request
+                        </button>
+                    `);
+                actions.push(`
+                        <button class="btn btn-danger" onclick="cancelRequest()">
+                            ✗ Cancel Request
+                        </button>
+                    `);
+            }
+        } else if (requestData.status === 'ACCEPTED' && requestData.orderId) {
+            actions.push(`
+                    <button class="btn btn-primary" onclick="viewOrder()">
+                        View Order →
+                    </button>
+                `);
+        }
+
+
+        container.innerHTML = actions.join('');
+    }
+
+    async function acceptRequest() {
+        if (!confirm('Are you sure you want to accept this request?')) {
+            return;
+        }
+
+        try {
+            console.log("Accepting Request");
+            const response = await fetch(`/api/requests/${requestData.requestId}/accept`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            console.log("Accept response", response);
+            if (response.ok) {
+                showSuccess('Request accepted successfully!');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                const error = await response.json();
+                showError(error.error || 'Failed to accept request');
+            }
+        } catch (error) {
+            console.error('Error accepting request:', error);
+            showError('An error occurred while accepting the request');
+        }
+    }
+
+    function openRejectionModal() {
+        document.getElementById('rejection-modal').classList.add('active');
+    }
+
+    function closeRejectionModal() {
+        document.getElementById('rejection-modal').classList.remove('active');
+        document.getElementById('rejection-reason').value = '';
+    }
+
+    async function confirmRejection() {
+        const reason = document.getElementById('rejection-reason').value;
+
+        try {
+            const response = await fetch(`/api/requests/${requestData.requestId}/reject`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ reason: reason })
+            });
+
+            if (response.ok) {
+                showSuccess('Request rejected successfully');
+                closeRejectionModal();
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                const error = await response.json();
+                showError(error.error || 'Failed to reject request');
+            }
+        } catch (error) {
+            console.error('Error rejecting request:', error);
+            showError('An error occurred while rejecting the request');
+        }
+    }
+
+    async function cancelRequest() {
+        if (!confirm('Are you sure you want to cancel this request?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/requests/${requestData.requestId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                showSuccess('Request cancelled successfully');
+                setTimeout(() => {
+                    window.location.href = `/users/${currentUserId}#requests`;
+                }, 1500);
+            } else {
+                const error = await response.json();
+                showError(error.error || 'Failed to cancel request');
+            }
+        } catch (error) {
+            console.error('Error cancelling request:', error);
+            showError('An error occurred while cancelling the request');
+        }
+    }
+
+    function openEditModal() {
+        // Populate form with current data
+        const startDate = new Date(requestData.startDate);
+        const endDate = new Date(requestData.endDate);
+
+        document.getElementById('edit-start-date').value = formatDateForInput(startDate);
+        document.getElementById('edit-end-date').value = formatDateForInput(endDate);
+        document.getElementById('edit-message').value = requestData.message || '';
+
+        document.getElementById('edit-modal').classList.add('active');
+    }
+
+    function openReviewModal() {
+        document.getElementById("review-modal").classList.add("active");
+    }
+
+    function closeReviewModal() {
+        document.getElementById("review-modal").classList.remove("active");
+    }
+
+    function closeEditModal() {
+        document.getElementById('edit-modal').classList.remove('active');
+    }
+
+    async function saveEditRequest() {
+        const startDate = document.getElementById('edit-start-date').value;
+        const endDate = document.getElementById('edit-end-date').value;
+        const message = document.getElementById('edit-message').value;
+
+        if (!startDate || !endDate) {
+            showError('Please select both start and end dates');
+            return;
+        }
+
+        if (new Date(startDate) >= new Date(endDate)) {
+            showError('End date must be after start date');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/requests/${requestData.requestId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    startDate: new Date(startDate).toISOString(),
+                    endDate: new Date(endDate).toISOString(),
+                    message: message
+                })
+            });
+
+            if (response.ok) {
+                showSuccess('Request updated successfully');
+                closeEditModal();
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                const error = await response.json();
+                showError(error.error || 'Failed to update request');
+            }
+        } catch (error) {
+            console.error('Error updating request:', error);
+            showError('An error occurred while updating the request');
+        }
+    }
+
+
+    function displayReviewButton() {
+        if (requestData.status !== "accepted") return;
+
+        if (!requestData.orderId) return;
+
+        if (currentUserId !== requestData.requesterId) return;
+
+        document.getElementById("review-button-container").innerHTML = `
+        <button class="btn btn-primary" onclick="openReviewModal()">
+            ✨ Write a Review
+        </button>
+    `;
+    }
+
+    function viewOrder() {
+        if (requestData.orderId) {
+            window.location.href = `/orders/${requestData.orderId}`;
+        }
+    }
+
+    function getRequestId() {
+        const pathParts = window.location.pathname.split('/');
+        const requestId = pathParts[pathParts.length - 1];
+
+        // 验证是否为有效的数字ID
+        if (!requestId || isNaN(requestId)) {
+            console.error('Invalid request ID from URL:', requestId);
+            return null;
+        }
+
+        return parseInt(requestId);
+    }
+
+    function formatDate(date) {
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+
+    function formatDateTime(date) {
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function formatDateForInput(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function showError(message) {
+        const container = document.getElementById('message-container');
+        container.innerHTML = `
+                <div class="error-message">
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+    }
+
+    function showSuccess(message) {
+        const container = document.getElementById('message-container');
+        container.innerHTML = `
+                <div class="success-message">
+                    <strong>Success:</strong> ${message}
+                </div>
+            `;
+    }
+
+    function hideLoading() {
+        document.getElementById('loading').style.display = 'none';
+    }
+
+    function goBack() {
+        if (document.referrer) {
+            window.history.back();
+        } else {
+            window.location.href = `/users/${currentUserId}`;
+        }
+    }
+
+    async function submitReview() {
+        const rating = parseInt(document.getElementById("review-rating").value);
+        const content = document.getElementById("review-content").value;
+
+        if (!rating || rating < 1 || rating > 5) {
+            showError("Please select a valid rating (1-5 stars).");
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/reviews/${requestData.orderId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    rating: rating,
+                    content: content,
+                    itemId: requestData.item?.itemId  // optional，后端会 fallback
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                showError(data.error || "Failed to submit review.");
+                return;
+            }
+
+            showSuccess("Review submitted successfully!");
+            closeReviewModal();
+
+            setTimeout(() => location.reload(), 1500);
+
+        } catch (error) {
+            console.error("Error submitting review:", error);
+            showError("An unexpected error occurred while submitting your review.");
+        }
+    }
+</script>
+</body>
+</html>

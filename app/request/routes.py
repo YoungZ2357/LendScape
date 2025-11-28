@@ -6,7 +6,7 @@
 # -------------------------------------------------------------------------
 from flask import request, jsonify, render_template, session
 from app.request import requests_bp
-from app.models import User, Item, Request, Order, RequestStatus
+from app.models import User, Item, Request, Order, RequestStatus, StatusType
 from app import db
 from app.auth.routes import login_required
 from datetime import datetime
@@ -22,9 +22,9 @@ def get_requests(user_id):
             return jsonify({'error': 'User not found'}), 404
 
         sent_requests = Request.query.filter_by(requesterId=user_id).all()
-
+        print(sent_requests)
         received_requests = Request.query.filter_by(ownerId=user_id).all()
-
+        print(received_requests)
         return jsonify({
             'sent': [req.to_dict() for req in sent_requests],
             'received': [req.to_dict() for req in received_requests],
@@ -36,7 +36,7 @@ def get_requests(user_id):
         return jsonify({'error': str(e)}), 500
 
 
-@requests_bp.route("/api/requests/<int:request_id>", methods=["GET"])
+@requests_bp.route("/api/requests/detail/<int:request_id>", methods=["GET"])
 @login_required
 def get_request_detail(request_id):
     try:
@@ -49,8 +49,9 @@ def get_request_detail(request_id):
             user = User.query.get(current_user_id)
             if not user or user.userClass.value != 'admin':
                 return jsonify({'error': 'Forbidden'}), 403
-
-        return jsonify(req.to_dict()), 200
+        data = req.to_dict()
+        data['logged_in_user'] = session.get('user_id') if "user_id" in session else None
+        return jsonify(data), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -185,39 +186,37 @@ def delete_request(request_id):
 @requests_bp.route("/api/requests/<int:request_id>/accept", methods=["PUT"])
 @login_required
 def accept_request(request_id):
-
     try:
         req = Request.query.get(request_id)
         if not req:
             return jsonify({'error': 'Request not found'}), 404
 
-
         current_user_id = session.get('user_id')
         if req.ownerId != current_user_id:
             return jsonify({'error': 'Forbidden'}), 403
 
-        if req.status != RequestStatus.PENDING:
+        # 使用小写字符串比较，因为枚举值是小写的
+        if req.status.value != 'pending':
             return jsonify({'error': 'Request is not pending'}), 409
 
         item = Item.query.get(req.itemId)
         if not item or not item.is_available:
             return jsonify({'error': 'Item is no longer available'}), 409
 
-        # 创建订单
         new_order = Order(
             renterId=req.ownerId,
             borrowerId=req.requesterId,
             itemId=req.itemId,
-            status='pending'
+            status="pending"  #
         )
+        print(new_order.to_dict())
+
         db.session.add(new_order)
         db.session.flush()
-
 
         req.status = RequestStatus.ACCEPTED
         req.orderId = new_order.orderId
         req.updatedAt = datetime.utcnow()
-
         item.is_available = False
 
         db.session.commit()
@@ -230,6 +229,8 @@ def accept_request(request_id):
         }), 200
 
     except Exception as e:
+        import traceback
+        print(f"Error: {str(e)}\nTraceback: {traceback.format_exc()}")
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
@@ -274,3 +275,42 @@ def reject_request(request_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+
+@requests_bp.route("/requests/<int:request_id>", methods=["GET"])
+@login_required
+def view_request(request_id):
+    try:
+        current_user_id = session.get('user_id')
+
+        req = Request.query.get(request_id)
+        if not req:
+            return "Request not found", 404
+
+        user = User.query.get(current_user_id)
+        if not user:
+            return "User not found", 404
+
+        if current_user_id not in [req.requesterId, req.ownerId]:
+            if not user or (hasattr(user, 'userClass') and user.userClass.value != 'admin'):
+                return "Access denied", 403
+
+        user_role = None
+        if current_user_id == req.ownerId:
+            user_role = 'owner'
+        elif current_user_id == req.requesterId:
+            user_role = 'requester'
+        else:
+            user_role = 'viewer'
+
+        return render_template('request_detail.html',
+                               request_id=request_id,
+                               logged_in_user=user,
+                               current_user_id=current_user_id,
+                               user_role=user_role,
+                               is_owner=(current_user_id == req.ownerId),
+                               is_requester=(current_user_id == req.requesterId))
+
+    except Exception as e:
+        print(f"Error viewing request: {str(e)}")
+        return f"An error occurred: {str(e)}", 500

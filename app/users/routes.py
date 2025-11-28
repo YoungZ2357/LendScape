@@ -157,7 +157,7 @@ def get_current_user():
         if user.locationId:
             location = Location.query.get(user.locationId)
             user_dict['location'] = location.to_dict() if location else None
-
+        print(user_dict)
         return jsonify(user_dict), 200
 
     except Exception as e:

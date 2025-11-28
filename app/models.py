@@ -122,10 +122,10 @@ class Order(db.Model):
     __table_args__ = {"extend_existing": True, "schema": "lendscapev1"}
 
     orderId = db.Column('orderid', db.Integer, primary_key=True, autoincrement=True)
-    renterId = db.Column('renterid', db.Integer, db.ForeignKey('User.userid'))
-    borrowerId = db.Column('borrowerid', db.Integer, db.ForeignKey('User.userid'))
-    reviewId = db.Column('reviewid', db.Integer, db.ForeignKey('Review.reviewid'))
-    itemId = db.Column('itemid', db.Integer, db.ForeignKey('Item.itemid'))
+    renterId = db.Column('renterid', db.Integer, db.ForeignKey('lendscapev1.User.userid'))
+    borrowerId = db.Column('borrowerid', db.Integer, db.ForeignKey('lendscapev1.User.userid'))
+    reviewId = db.Column('reviewid', db.Integer, db.ForeignKey('lendscapev1.Review.reviewid'))
+    itemId = db.Column('itemid', db.Integer, db.ForeignKey('lendscapev1.Item.itemid'))
     status = db.Column(db.Enum(StatusType))
 
     # review = db.relationship('Review', backref='order', foreign_keys=[reviewId])
@@ -137,7 +137,7 @@ class Order(db.Model):
             'borrowerId': self.borrowerId,
             'reviewId': self.reviewId,
             'itemId': self.itemId,
-            'status': self.status.value if self.status else None
+            'status': self.status if self.status else None
         }
 
 
@@ -146,9 +146,9 @@ class Review(db.Model):
     __table_args__ = {"extend_existing": True, "schema": "lendscapev1"}
 
     reviewId = db.Column('reviewid', db.Integer, primary_key=True, autoincrement=True)
-    userId = db.Column('userid', db.Integer, db.ForeignKey('User.userId'))
-    itemId = db.Column('itemid', db.Integer, db.ForeignKey('Item.itemId'))
-    orderId = db.Column('orderid', db.Integer, db.ForeignKey('Order.orderId'))
+    userId = db.Column('userid', db.Integer, db.ForeignKey('lendscapev1.User.userid'))
+    itemId = db.Column('itemid', db.Integer, db.ForeignKey('lendscapev1.Item.itemid'))
+    orderId = db.Column('orderid', db.Integer, db.ForeignKey('lendscapev1.Order.orderid'))
     content = db.Column('content', db.Text)
     rating = db.Column('rating', db.DECIMAL(3, 2))
 

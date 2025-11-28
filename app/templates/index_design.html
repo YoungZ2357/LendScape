@@ -605,9 +605,9 @@
     <section class="quick-actions">
         <h3 style="margin-bottom: 2rem; color: #1f2937;">Ready to get started?</h3>
         <div class="action-buttons">
-            <a href="{{ url_for('items.search_page') }}" class="btn btn-primary">Browse Available Items</a>
+
             {% if current_user %}
-            <a href="{{ url_for('items.search_page') }}" class="btn btn-outline">Browse More Items</a>
+            <a href="{{ url_for('items.search_page') }}" class="btn btn-primary">Browse Available Items</a>
             {% else %}
             <a href="{{ url_for('auth.login_page') }}" class="btn btn-outline">Create Your Account</a>
             {% endif %}
