@@ -1,0 +1,15 @@
+/*This style sheet controls small elements, specifically, elements for displaying data*/
+.elem-card {
+    background: #f9fafb;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.elem-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+}

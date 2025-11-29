@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/elements.css') }}">
+    <title>Title</title>
+</head>
+<style ></style>
+<body>
+    <div>
+        <h2>User Search</h2>
+        <input id="searchInput" type="text" placeholder="User Search Demo">
+        <button id="searchButton" onclick="makeSearchUser(1, 8, true)">Search</button>
+        <button id="clearButton" onclick="clearSearchUser()">Clear search/search without key word</button>
+        <div style="margin-top: 30px;">
+            <a href="{{ url_for('main.index') }}">Return</a>
+        </div>
+
+        <div id="loading"></div>
+        <div id="results"></div>
+        <div id="pagination"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/utils.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/users.js')}}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const elem = document.getElementById("searchInput");
+            elem.addEventListener("keydown", function(event){
+                if (event.key === "Enter"){
+                    event.preventDefault();
+                    makeSearchUser(1, 8, true)
+                }
+            });
+            makeSearchUser(1, 8, false);
+        })
+
+    </script>
+</body>
+</html>

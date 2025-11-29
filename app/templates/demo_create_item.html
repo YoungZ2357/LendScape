@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Item - LendScape</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        .form-group input[readonly] {
+            background-color: #f5f5f5;
+            color: #666;
+            cursor: not-allowed;
+        }
+        .form-group input[type="text"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .form-group input[readonly]:focus {
+            border-color: #ddd;
+            box-shadow: none;
+        }
+        .form-group textarea {
+            resize: vertical;
+            font-family: inherit;
+        }
+        .form-group input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            color: #555;
+        }
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .form-actions button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .form-actions button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        .form-actions button[type="button"] {
+            background: #6c757d;
+        }
+        .form-actions button[type="button"]:hover {
+            background: #5a6268;
+        }
+        #message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        #message.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+            display: block;
+        }
+        #message.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+            display: block;
+        }
+        .required-note {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        .required-asterisk {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Create New Item</h1>
+
+    <div class="required-note">
+        Fields marked with <span class="required-asterisk">*</span> are required
+    </div>
+
+    <form id="createItemForm">
+        <div class="form-group">
+            <label for="itemName">Item Name <span class="required-asterisk">*</span></label>
+            <input type="text" id="itemName" name="itemName" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="4" placeholder="Enter item description..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="price">Price ($)</label>
+            <input type="number" id="price" name="price" step="0.01" min="0" placeholder="0.00">
+        </div>
+
+        <div class="form-group">
+            <label for="imageUrl">Image URL</label>
+            <input type="text" id="imageUrl" name="image_url" placeholder="https://example.com/image.jpg">
+        </div>
+
+        <div class="form-group">
+            <label for="userId">User ID <span class="required-asterisk">*</span></label>
+            <input type="number" id="userId" name="userId" value="{{ user_id }}" readonly required>
+        </div>
+
+        <div class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" id="isAvailable" name="is_available" checked>
+                Available for lending
+            </label>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit">Create Item</button>
+            <button type="button" onclick="window.location.href='/items/search'">Cancel</button>
+        </div>
+    </form>
+
+    <div id="message"></div>
+</div>
+
+<script>
+    document.getElementById('createItemForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+        const data = {
+            itemName: formData.get('itemName'),
+            description: formData.get('description'),
+            price: parseFloat(formData.get('price')) || 0,
+            userId: parseInt(formData.get('userId')),
+            image_url: formData.get('image_url'),
+            is_available: formData.get('is_available') ? true : false
+        };
+        console.log(data);
+
+        const messageDiv = document.getElementById('message');
+
+        try {
+            const response = await fetch('/api/items', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                messageDiv.className = 'success';
+                messageDiv.innerHTML = 'Item created successfully! Redirecting...';
+                e.target.reset();
+
+                setTimeout(() => {
+                    window.location.href = '/items/search';
+                }, 2000);
+            } else {
+                messageDiv.className = 'error';
+                messageDiv.innerHTML = `Error: ${result.error}`;
+            }
+        } catch (error) {
+            messageDiv.className = 'error';
+            messageDiv.innerHTML = `Network error: ${error.message}`;
+        }
+    });
+</script>
+</body>
+</html>

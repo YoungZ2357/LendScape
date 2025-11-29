@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><!DOCTYPE html>
+        <html lang="en">
+        <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Admin Dashboard - LendScape</title>
+    <link rel="stylesheet" href="../static/css/admin.css">
+
+    <link rel="stylesheet" href="{{url_for('static', filename='css/admin.css')}}">
+</head>
+<body>
+<!-- Admin Navbar -->
+<nav class="admin-navbar">
+    <div class="nav-container">
+        <div class="nav-left">
+            <button class="menu-toggle">☰</button>
+            <div class="logo">📦 LendScape Admin</div>
+        </div>
+        <div class="nav-center">
+            <div class="search-box">
+                <input type="text" placeholder="Search users, items, orders...">
+                <span class="search-icon">🔍</span>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="notification-bell">
+                🔔
+                <span class="notification-count">5</span>
+            </div>
+            <div class="admin-profile">
+                <div class="admin-avatar">AD</div>
+                <div class="admin-info">
+                    <span class="admin-name">Admin User</span>
+                    <span class="admin-role">Super Admin</span>
+                </div>
+                <span class="dropdown-arrow">▼</span>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+        <nav class="sidebar-menu">
+            <div class="menu-section">
+                <div class="menu-title">Main</div>
+                <a href="#" class="menu-item active">
+                    <span class="menu-icon">📊</span>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">📈</span>
+                    <span class="menu-text">Analytics</span>
+                    <span class="menu-badge">New</span>
+                </a>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Management</div>
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">👥</span>
+                    <span class="menu-text">Users</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">📦</span>
+                    <span class="menu-text">Items</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">📋</span>
+                    <span class="menu-text">Orders</span>
+                    <span class="menu-counter">23</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">🏷️</span>
+                    <span class="menu-text">Categories</span>
+                </a>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">Reports</div>
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">⚠️</span>
+                    <span class="menu-text">Reports & Issues</span>
+                    <span class="menu-counter warning">8</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">⭐</span>
+                    <span class="menu-text">Reviews</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">💬</span>
+                    <span class="menu-text">Messages</span>
+                </a>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">System</div>
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">⚙️</span>
+                    <span class="menu-text">Settings</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">📝</span>
+                    <span class="menu-text">Logs</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">🔐</span>
+                    <span class="menu-text">Security</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title-section">
+                <h1 class="page-title">Dashboard Overview</h1>
+                <div class="breadcrumb">
+                    <span>Admin</span>
+                    <span>/</span>
+                    <span>Dashboard</span>
+                </div>
+            </div>
+            <div class="page-actions">
+                <button class="btn btn-secondary">
+                    <span>📥</span> Export Report
+                </button>
+                <button class="btn btn-primary">
+                    <span>🔄</span> Refresh Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                    👥
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-value">12,543</div>
+                    <div class="stat-change positive">
+                        <span>↑</span> 12.5% from last month
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">
+                    📦
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Active Items</div>
+                    <div class="stat-value">8,721</div>
+                    <div class="stat-change positive">
+                        <span>↑</span> 8.2% from last month
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #3b82f6);">
+                    📋
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Orders</div>
+                    <div class="stat-value">45,234</div>
+                    <div class="stat-change positive">
+                        <span>↑</span> 23.1% from last month
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-section">
+            <div class="chart-card large">
+                <div class="chart-header">
+                    <h3 class="chart-title">Platform Activity</h3>
+                    <div class="chart-controls">
+                        <button class="period-btn active">Day</button>
+                        <button class="period-btn">Week</button>
+                        <button class="period-btn">Month</button>
+                        <button class="period-btn">Year</button>
+                    </div>
+                </div>
+                <div class="chart-body">
+                    <div class="chart-placeholder">
+                        📊 Chart Visualization Area
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card small">
+                <div class="chart-header">
+                    <h3 class="chart-title">Category Distribution</h3>
+                    <button class="chart-menu">⋮</button>
+                </div>
+                <div class="chart-body">
+                    <div class="chart-placeholder">
+                        🍩 Donut Chart Area
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables Section -->
+        <div class="tables-section">
+            <!-- Recent Orders Table -->
+            <div class="data-table-card">
+                <div class="table-header">
+                    <h3 class="table-title">Recent Orders</h3>
+                    <div class="table-actions">
+                        <input type="text" placeholder="Search orders..." class="table-search">
+                        <button class="btn-icon">
+                            <span>⚙️</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox">
+                            </th>
+                            <th>Order ID</th>
+                            <th>User</th>
+                            <th>Item</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>#ORD-2024-001</td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-small">JD</div>
+                                    <span>John Doe</span>
+                                </div>
+                            </td>
+                            <td>Canon DSLR Camera</td>
+                            <td>2024-01-15</td>
+                            <td><span class="status-badge active">Active</span></td>
+                            <td>$125.00</td>
+                            <td>
+                                <button class="action-btn">👁️</button>
+                                <button class="action-btn">✏️</button>
+                                <button class="action-btn danger">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>#ORD-2024-002</td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-small">AS</div>
+                                    <span>Alice Smith</span>
+                                </div>
+                            </td>
+                            <td>Power Drill Set</td>
+                            <td>2024-01-15</td>
+                            <td><span class="status-badge completed">Completed</span></td>
+                            <td>$45.00</td>
+                            <td>
+                                <button class="action-btn">👁️</button>
+                                <button class="action-btn">✏️</button>
+                                <button class="action-btn danger">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox"></td>
+                            <td>#ORD-2024-003</td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-small">BJ</div>
+                                    <span>Bob Johnson</span>
+                                </div>
+                            </td>
+                            <td>Camping Tent</td>
+                            <td>2024-01-14</td>
+                            <td><span class="status-badge pending">Pending</span></td>
+                            <td>$90.00</td>
+                            <td>
+                                <button class="action-btn">👁️</button>
+                                <button class="action-btn">✏️</button>
+                                <button class="action-btn danger">🗑️</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer">
+                    <div class="table-info">
+                        Showing 1-10 of 234 entries
+                    </div>
+                    <div class="table-pagination">
+                        <button class="page-btn" disabled>Previous</button>
+                        <button class="page-num active">1</button>
+                        <button class="page-num">2</button>
+                        <button class="page-num">3</button>
+                        <button class="page-btn">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions Panel -->
+            <div class="quick-actions-card">
+                <h3 class="card-title">Quick Actions</h3>
+                <div class="quick-actions-grid">
+                    <button class="quick-action-btn">
+                        <span class="action-icon">➕</span>
+                        <span class="action-text">Add User</span>
+                    </button>
+                    <button class="quick-action-btn">
+                        <span class="action-icon">📦</span>
+                        <span class="action-text">New Item</span>
+                    </button>
+                    <button class="quick-action-btn">
+                        <span class="action-icon">📊</span>
+                        <span class="action-text">Generate Report</span>
+                    </button>
+                    <button class="quick-action-btn">
+                        <span class="action-icon">📧</span>
+                        <span class="action-text">Send Newsletter</span>
+                    </button>
+                    <button class="quick-action-btn">
+                        <span class="action-icon">🔔</span>
+                        <span class="action-text">Broadcast</span>
+                    </button>
+                    <button class="quick-action-btn">
+                        <span class="action-icon">🎯</span>
+                        <span class="action-text">Campaigns</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="activity-section">
+            <div class="activity-card">
+                <h3 class="card-title">Recent Activity</h3>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon new-user">👤</div>
+                        <div class="activity-content">
+                            <div class="activity-text">
+                                <strong>New user registered:</strong> Emma Wilson
+                            </div>
+                            <div class="activity-time">5 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon new-order">📋</div>
+                        <div class="activity-content">
+                            <div class="activity-text">
+                                <strong>New order placed:</strong> #ORD-2024-234
+                            </div>
+                            <div class="activity-time">12 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon report">⚠️</div>
+                        <div class="activity-content">
+                            <div class="activity-text">
+                                <strong>Item reported:</strong> Suspicious listing detected
+                            </div>
+                            <div class="activity-time">1 hour ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon system">⚙️</div>
+                        <div class="activity-content">
+                            <div class="activity-text">
+                                <strong>System update:</strong> Database backup completed
+                            </div>
+                            <div class="activity-time">3 hours ago</div>
+                        </div>
+                    </div>
+                </div>
+                <button class="view-all-btn">View All Activity →</button>
+            </div>
+
+            <div class="todo-card">
+                <h3 class="card-title">To-Do List</h3>
+                <div class="todo-list">
+                    <div class="todo-item">
+                        <input type="checkbox" id="todo1">
+                        <label for="todo1">Review pending item approvals (12)</label>
+                    </div>
+                    <div class="todo-item">
+                        <input type="checkbox" id="todo2">
+                        <label for="todo2">Respond to user support tickets</label>
+                    </div>
+                    <div class="todo-item">
+                        <input type="checkbox" id="todo3" checked>
+                        <label for="todo3">Update platform terms of service</label>
+                    </div>
+                    <div class="todo-item">
+                        <input type="checkbox" id="todo4">
+                        <label for="todo4">Schedule server maintenance</label>
+                    </div>
+                </div>
+                <button class="add-todo-btn">+ Add New Task</button>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html></title>
+</head>
+<body>
+
+</body>
+</html>

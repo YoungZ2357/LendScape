@@ -1,0 +1,1418 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - LendScape</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <style>
+        /* My Items Section Styles */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .item-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .item-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            position: relative;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .item-status.available {
+            background: #28a745;
+            color: white;
+        }
+
+        .item-status.rented {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .item-content {
+            padding: 20px;
+        }
+
+        .item-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .item-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .item-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .item-price span {
+            font-size: 14px;
+            color: #999;
+            font-weight: normal;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .item-action-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .item-action-btn.edit {
+            background: #e8f4f8;
+            color: #667eea;
+        }
+
+        .item-action-btn.edit:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .item-action-btn.delete {
+            background: #fee;
+            color: #dc3545;
+        }
+
+        .item-action-btn.delete:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .empty-items {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-items-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .add-item-card {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .add-item-card:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: translateY(-5px);
+        }
+
+        .add-item-content {
+            text-align: center;
+        }
+
+        .add-item-icon {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .add-item-text {
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Settings Section Styles */
+        .settings-container {
+            max-width: 800px;
+            margin-top: 20px;
+        }
+
+        .settings-group {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .settings-group-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-info {
+            flex: 1;
+        }
+
+        .settings-label {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .settings-description {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .settings-action {
+            display: flex;
+            gap: 10px;
+        }
+
+        .settings-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .settings-btn.primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .settings-btn.primary:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .settings-btn.danger {
+            background: white;
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+
+        .settings-btn.danger:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .settings-btn.secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .settings-btn.secondary:hover {
+            background: #5a6268;
+        }
+
+        .address-form {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .address-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .danger-zone {
+            background: #fff5f5;
+            border: 1px solid #ffdddd;
+        }
+
+        .danger-zone .settings-group-title {
+            color: #dc3545;
+        }
+
+        /* Requests Section Styles */
+        .request-tabs {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+            margin-right: 20px;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #f8f9fa;
+        }
+
+        .requests-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .requests-container.active {
+            display: block;
+        }
+
+        .requests-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .request-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .request-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .request-info {
+            flex: 1;
+        }
+
+        .request-item-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .request-user {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .request-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .request-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .request-status.accepted {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .request-status.rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .request-status.cancelled {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .request-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .request-detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .request-detail-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+        }
+
+        .request-detail-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .request-message {
+            padding: 10px;
+            background: #f0f4ff;
+            border-left: 3px solid #667eea;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .request-message-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .request-message-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .request-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .request-btn.accept {
+            background: #28a745;
+            color: white;
+        }
+
+        .request-btn.accept:hover {
+            background: #218838;
+        }
+
+        .request-btn.reject {
+            background: white;
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+
+        .request-btn.reject:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .request-btn.cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .request-btn.cancel:hover {
+            background: #5a6268;
+        }
+
+        .request-btn.edit {
+            background: white;
+            color: #667eea;
+            border: 1px solid #667eea;
+        }
+
+        .request-btn.edit:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .empty-requests {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-requests-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+<script src="{{ url_for('static', filename='js/utils.js')}}"></script>
+<script src="{{ url_for('static', filename='js/users.js')}}"></script>
+<!-- Hidden input for user ID -->
+<input type="hidden" id="user-id" value="">
+
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="logo">📦 LendScape</div>
+        <div class="nav-menu">
+            <a href="{{ url_for('main.index') }}">Home</a>
+            <a href="#">Browse</a>
+            <a href="#">Messages</a>
+            <a href="#" class="active">Profile</a>
+        </div>
+        <div class="user-menu">
+            <div class="notification-icon">
+                🔔
+                <span class="notification-badge"></span>
+            </div>
+            <!-- 导航栏头像始终显示登录用户的缩写 -->
+            <div class="user-avatar" id="nav-avatar" data-keep="true">
+                {% if logged_in_user %}
+                {{ (logged_in_user.firstName[0] if logged_in_user.firstName else logged_in_user.email[0] if logged_in_user.email else 'U') | upper }}
+                {% else %}
+                -
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="main-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="profile-card">
+            <div class="profile-header" id="profile-card">
+                <div class="profile-avatar" id="profile-avatar">-</div>
+                <div class="profile-name" id="profile-name">Loading...</div>
+                <div class="profile-username" id="profile-email">-</div>
+            </div>
+            <div class="profile-stats" id="profile-stats">
+                <div class="stat">
+                    <div class="stat-value" id="items-count">0</div>
+                    <div class="stat-label">Lending</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="total-orders">0</div>
+                    <div class="stat-label">Borrowing</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="user-rating" data-rating-loaded="false">Loading...</div>
+                    <div class="stat-label">Rating</div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-link" data-section="items">
+                <span class="nav-icon">📦</span>
+                {% if logged_in_id == user_id %}
+                    My Items
+                {% else %}
+                    Items
+                {% endif %}
+            </a>
+            <a href="#" class="nav-link active" data-section="borrowing">
+                <span class="nav-icon">📥</span>
+                Borrowing (<span id="borrower-count">0</span>)
+            </a>
+
+            <a href="#" class="nav-link" data-section="lending">
+                <span class="nav-icon">📤</span>
+                Lending (<span id="lender-count">0</span>)
+            </a>
+            {%if logged_in_id == user_id%}
+            <a href="#" class="nav-link" data-section="requests">
+                <span class="nav-icon">📋</span>
+                Requests (<span id="requests-count">0</span>)
+            </a>
+            <a href="#" class="nav-link" data-section="settings">
+                <span class="nav-icon">⚙️</span>
+                Settings
+            </a>
+            {%endif%}
+        </nav>
+    </div>
+    <!-- Content Area -->
+    <div class="content-area">
+        <!-- Loading State -->
+        <div id="loading" class="loading" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>Loading user data...</p>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+
+        <!-- My Items Section -->
+        <div id="items-section" class="orders-section">
+            <div class="content-header">
+                <h1 class="content-title">My Items</h1>
+                <button class="btn btn-primary" onclick="window.location.href='/items/create'">
+                    <span>+</span> Add New Item
+                </button>
+            </div>
+
+            <div id="ownership-results"></div>
+        </div>
+
+
+        <div id="borrowing-section" class="orders-section active">
+            <div class="content-header">
+                <h1 class="content-title">My Borrowing Orders</h1>
+                <button class="btn btn-primary" onclick="refreshUserDetail()">
+                    🔄 Refresh
+                </button>
+            </div>
+            <div id="borrower-orders-results"></div>
+        </div>
+
+        <!-- Lending Orders Section -->
+        <div id="lending-section" class="orders-section">
+            <div class="content-header">
+                <h1 class="content-title">My Lending Orders</h1>
+                <button class="btn btn-primary" onclick="refreshUserDetail()">
+                    🔄 Refresh
+                </button>
+            </div>
+            <div id="lender-orders-results"></div>
+        </div>
+
+
+        <div id="requests-section" class="orders-section">
+            <div class="content-header">
+                <h1 class="content-title">My Requests</h1>
+                <div class="request-tabs">
+                    <button class="tab-btn active" data-tab="received">
+                        Received (<span id="received-count">0</span>)
+                    </button>
+                    <button class="tab-btn" data-tab="sent">
+                        Sent (<span id="sent-count">0</span>)
+                    </button>
+                </div>
+                <button class="btn btn-primary" onclick="refreshRequests()">
+                    🔄 Refresh
+                </button>
+            </div>
+
+
+            <div id="received-requests" class="requests-container active">
+                <div class="requests-list" id="received-requests-list">
+
+                </div>
+            </div>
+
+
+            <div id="sent-requests" class="requests-container">
+                <div class="requests-list" id="sent-requests-list">
+
+                </div>
+            </div>
+        </div>
+
+
+        <div id="settings-section" class="orders-section">
+            <div class="content-header">
+                <h1 class="content-title">Settings</h1>
+            </div>
+
+            <div class="settings-container">
+                <!-- Profile Settings -->
+                <div class="settings-group">
+                    <h3 class="settings-group-title">Profile Settings</h3>
+
+                    <div class="settings-item">
+                        <div class="settings-info">
+                            <div class="settings-label">Change Address</div>
+                            <div class="settings-description">Update your default address</div>
+                        </div>
+                        <div class="settings-action">
+                            <button class="settings-btn primary" onclick="toggleAddressForm()">Change Address</button>
+                        </div>
+                    </div>
+
+                    <div id="address-form" class="address-form">
+                        <div class="form-group">
+                            <label for="street">Street Address</label>
+                            <input type="text" id="street" placeholder="123 Main St">
+                        </div>
+                        <div class="form-group">
+                            <label for="city">City</label>
+                            <input type="text" id="city" placeholder="Boston">
+                        </div>
+                        <div class="form-group">
+                            <label for="state">State</label>
+                            <input type="text" id="state" placeholder="MA">
+                        </div>
+                        <div class="form-group">
+                            <label for="zip">ZIP Code</label>
+                            <input type="text" id="zip" placeholder="02134">
+                        </div>
+                        <div class="form-actions">
+                            <button class="settings-btn primary" onclick="saveAddress()">Save Address</button>
+                            <button class="settings-btn secondary" onclick="toggleAddressForm()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Settings -->
+                <div class="settings-group">
+                    <h3 class="settings-group-title">Account Settings</h3>
+
+                    <div class="settings-item">
+                        <div class="settings-info">
+                            <div class="settings-label">Sign Out</div>
+                            <div class="settings-description">Sign out from your LendScape account</div>
+                        </div>
+                        <div class="settings-action">
+                            <button class="settings-btn secondary" onclick="logout()">Sign Out</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="settings-group danger-zone">
+                    <h3 class="settings-group-title">Danger Zone</h3>
+
+                    <div class="settings-item">
+                        <div class="settings-info">
+                            <div class="settings-label">Delete Account</div>
+                            <div class="settings-description">Permanently delete your account and all associated data. This action cannot be undone.</div>
+                        </div>
+                        <div class="settings-action">
+                            <button class="settings-btn danger" onclick="confirmDeleteAccount()">Delete Account</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+<script>
+    let requestsData = {
+        sent: [],
+        received: []
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('User detail page loaded');
+
+        const currentPath = window.location.pathname;
+        console.log('Current path:', currentPath);
+
+        if (currentPath.match(/^\/users\/\d+$/)) {
+            console.log('This is a user detail page');
+            if (typeof fetchUserDetail === 'function') {
+                fetchUserDetail();
+            } else {
+                console.error('fetchUserDetail function not found');
+            }
+            fetchUserRating();
+            setupSidebarNavigation();
+            initRequestsTabs();
+        } else {
+            console.log('Not a user detail page');
+        }
+    });
+
+    // 设置侧边栏导航
+    function setupSidebarNavigation() {
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('.orders-section, .items-section');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                navLinks.forEach(l => l.classList.remove('active'));
+                sections.forEach(s => s.classList.remove('active'));
+
+                this.classList.add('active');
+
+                const sectionName = this.dataset.section;
+                const section = document.getElementById(`${sectionName}-section`);
+                if (section) {
+                    section.classList.add('active');
+                    if (sectionName === 'requests' && !requestsData.loaded) {
+                        fetchUserRequests();
+                    }
+                }
+            });
+        });
+
+        console.log('Sidebar navigation setup complete');
+    }
+
+    function initRequestsTabs() {
+        const tabBtns = document.querySelectorAll('.request-tabs .tab-btn');
+        const containers = document.querySelectorAll('.requests-container');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                containers.forEach(c => c.classList.remove('active'));
+
+                this.classList.add('active');
+                const tabName = this.dataset.tab;
+                const container = document.getElementById(`${tabName}-requests`);
+                if (container) {
+                    container.classList.add('active');
+                }
+            });
+        });
+    }
+
+    async function fetchUserRequests() {
+        try {
+            const userIdElement = document.getElementById('user-id');
+            let userId = userIdElement ? userIdElement.value : null;
+
+            if (!userId) {
+                const parts = window.location.pathname.split('/');
+                userId = parts[parts.length - 1];
+            }
+
+            const response = await fetch(`/api/requests/${userId}`);
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch requests');
+            }
+
+            const data = await response.json();
+            requestsData = data;
+            requestsData.loaded = true;
+
+            document.getElementById('received-count').textContent = data.total_received || 0;
+            document.getElementById('sent-count').textContent = data.total_sent || 0;
+            document.getElementById('requests-count').textContent = (data.total_received || 0) + (data.total_sent || 0);
+
+            renderReceivedRequests(data.received || []);
+            renderSentRequests(data.sent || []);
+
+        } catch (error) {
+            console.error('Error fetching requests:', error);
+            showRequestsError('Failed to load requests');
+        }
+    }
+
+    function renderReceivedRequests(requests) {
+        const container = document.getElementById('received-requests-list');
+
+        if (!requests || requests.length === 0) {
+            container.innerHTML = `
+            <div class="empty-requests">
+                <div class="empty-requests-icon">📥</div>
+                <div class="empty-title">No Received Requests</div>
+                <div class="empty-description">You haven't received any borrowing requests yet</div>
+            </div>
+        `;
+            return;
+        }
+
+        container.innerHTML = requests.map(request => `
+        <div class="request-card" onclick="viewRequestDetail(${request.requestId})">
+            <div class="request-header">
+                <div class="request-info">
+                    <div class="request-item-name">Item #${request.itemId}</div>
+                    <div class="request-user">From: User #${request.requesterId}</div>
+                </div>
+                <span class="request-status ${request.status.toLowerCase()}">${request.status}</span>
+            </div>
+
+            <div class="request-details">
+                <div class="request-detail-item">
+                    <span class="request-detail-label">Start Date</span>
+                    <span class="request-detail-value">${formatDate(request.startDate)}</span>
+                </div>
+                <div class="request-detail-item">
+                    <span class="request-detail-label">End Date</span>
+                    <span class="request-detail-value">${formatDate(request.endDate)}</span>
+                </div>
+                <div class="request-detail-item">
+                    <span class="request-detail-label">Duration</span>
+                    <span class="request-detail-value">${calculateDuration(request.startDate, request.endDate)} days</span>
+                </div>
+                ${request.orderId ? `
+                <div class="request-detail-item">
+                    <span class="request-detail-label">Order ID</span>
+                    <span class="request-detail-value">#${request.orderId}</span>
+                </div>
+                ` : ''}
+            </div>
+
+            ${request.message ? `
+            <div class="request-message">
+                <div class="request-message-label">Message</div>
+                <div class="request-message-text">${escapeHtml(request.message)}</div>
+            </div>
+            ` : ''}
+
+            ${request.rejectionReason ? `
+            <div class="request-message">
+                <div class="request-message-label">Rejection Reason</div>
+                <div class="request-message-text">${escapeHtml(request.rejectionReason)}</div>
+            </div>
+            ` : ''}
+
+            ${request.status === 'PENDING' ? `
+            <div class="request-actions">
+                <button class="request-btn accept" onclick="acceptRequest(${request.requestId}, event)">
+                    ✔ Accept
+                </button>
+                <button class="request-btn reject" onclick="rejectRequest(${request.requestId}, event)">
+                    ✗ Reject
+                </button>
+            </div>
+            ` : ''}
+        </div>
+    `).join('');
+    }
+
+    function renderSentRequests(requests) {
+        const container = document.getElementById('sent-requests-list');
+
+        if (!requests || requests.length === 0) {
+            container.innerHTML = `
+            <div class="empty-requests">
+                <div class="empty-requests-icon">📤</div>
+                <div class="empty-title">No Sent Requests</div>
+                <div class="empty-description">You haven't sent any borrowing requests yet</div>
+            </div>
+        `;
+            return;
+        }
+
+        container.innerHTML = requests.map(request => `
+        <div class="request-card" onclick="viewRequestDetail(${request.requestId})">
+            <div class="request-header">
+                <div class="request-info">
+                    <div class="request-item-name">Item #${request.itemId}</div>
+                    <div class="request-user">To: User #${request.ownerId}</div>
+                </div>
+                <span class="request-status ${request.status.toLowerCase()}">${request.status}</span>
+            </div>
+
+            <div class="request-details">
+                <div class="request-detail-item">
+                    <span class="request-detail-label">Start Date</span>
+                    <span class="request-detail-value">${formatDate(request.startDate)}</span>
+                </div>
+                <div class="request-detail-item">
+                    <span class="request-detail-label">End Date</span>
+                    <span class="request-detail-value">${formatDate(request.endDate)}</span>
+                </div>
+                <div class="request-detail-item">
+                    <span class="request-detail-label">Duration</span>
+                    <span class="request-detail-value">${calculateDuration(request.startDate, request.endDate)} days</span>
+                </div>
+                ${request.orderId ? `
+                <div class="request-detail-item">
+                    <span class="request-detail-label">Order ID</span>
+                    <span class="request-detail-value">#${request.orderId}</span>
+                </div>
+                ` : ''}
+            </div>
+
+            ${request.message ? `
+            <div class="request-message">
+                <div class="request-message-label">Message</div>
+                <div class="request-message-text">${escapeHtml(request.message)}</div>
+            </div>
+            ` : ''}
+
+            ${request.rejectionReason ? `
+            <div class="request-message">
+                <div class="request-message-label">Rejection Reason</div>
+                <div class="request-message-text">${escapeHtml(request.rejectionReason)}</div>
+            </div>
+            ` : ''}
+
+            ${request.status === 'PENDING' ? `
+            <div class="request-actions">
+                <button class="request-btn edit" onclick="editRequest(${request.requestId}, event)">
+                    ✏️ Edit
+                </button>
+                <button class="request-btn cancel" onclick="cancelRequest(${request.requestId}, event)">
+                    ✗ Cancel
+                </button>
+            </div>
+            ` : ''}
+        </div>
+    `).join('');
+    }
+
+    async function acceptRequest(requestId, event) {
+        event.stopPropagation();
+
+        if (!confirm('Are you sure you want to accept this request?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/requests/${requestId}/accept`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                alert('Request accepted successfully!');
+                fetchUserRequests();
+            } else {
+                const error = await response.json();
+                alert(`Failed to accept request: ${error.error}`);
+            }
+        } catch (error) {
+            console.error('Error accepting request:', error);
+            alert('An error occurred while accepting the request');
+        }
+    }
+
+    async function rejectRequest(requestId, event) {
+        event.stopPropagation();
+
+        const reason = prompt('Please provide a reason for rejection (optional):');
+        if (reason === null) {
+            return;
+        }
+        try {
+            const response = await fetch(`/api/requests/${requestId}/reject`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ reason: reason || '' })
+            });
+            if (response.ok) {
+                alert('Request rejected successfully');
+                fetchUserRequests();
+            } else {
+                const error = await response.json();
+                alert(`Failed to reject request: ${error.error}`);
+            }
+        } catch (error) {
+            console.error('Error rejecting request:', error);
+            alert('An error occurred while rejecting the request');
+        }
+    }
+
+    async function cancelRequest(requestId, event) {
+        event.stopPropagation();
+
+        if (!confirm('Are you sure you want to cancel this request?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/requests/${requestId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('Request cancelled successfully');
+                fetchUserRequests();
+            } else {
+                const error = await response.json();
+                alert(`Failed to cancel request: ${error.error}`);
+            }
+        } catch (error) {
+            console.error('Error cancelling request:', error);
+            alert('An error occurred while cancelling the request');
+        }
+    }
+    function editRequest(requestId, event) {
+        event.stopPropagation();
+
+
+        alert(`Edit request #${requestId} - Feature to be implemented`);
+
+        // window.location.href = `/requests/${requestId}/edit`;
+    }
+
+    function handleRequestClick(requestId, type) {
+
+        console.log(`Request #${requestId} clicked (${type})`);
+
+    }
+
+
+    async function fetchRequestDetail(requestId) {
+        try {
+            const response = await fetch(`/api/requests/${requestId}`);
+            if (response.ok) {
+                return await response.json();
+            }
+            throw new Error('Failed to fetch request detail');
+        } catch (error) {
+            console.error('Error fetching request detail:', error);
+            return null;
+        }
+    }
+
+    function refreshRequests() {
+        fetchUserRequests();
+    }
+
+    // 显示错误信息
+    function showRequestsError(message) {
+        const receivedContainer = document.getElementById('received-requests-list');
+        const sentContainer = document.getElementById('sent-requests-list');
+
+        const errorHtml = `
+            <div class="error-message">
+                <span>⚠️ ${message}</span>
+            </div>
+        `;
+
+        receivedContainer.innerHTML = errorHtml;
+        sentContainer.innerHTML = errorHtml;
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+
+    function calculateDuration(startDate, endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    }
+
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    async function fetchUserRating() {
+        console.log("fetchUserRating triggered");
+
+        try {
+            const parts = window.location.pathname.split("/");
+            const userid = parts[parts.length - 1];
+            console.log(`Fetching rating for user: ${userid}`);
+
+            const response = await fetch(`/api/users/rating/${userid}`);
+
+            if (!response.ok) {
+                if (typeof updateUserRating === 'function') {
+                    updateUserRating("N/A");
+                } else {
+                    const ratingElement = document.getElementById("user-rating");
+                    if (ratingElement) {
+                        ratingElement.textContent = "N/A";
+                        ratingElement.setAttribute('data-rating-loaded', 'true');
+                    }
+                }
+                console.log(`Rating fetch failed: no record`);
+                return;
+            }
+
+            const data = await response.json();
+            console.log("Rating data received:", data);
+
+            const rating = data.averageRating;
+
+            let displayRating;
+            if (rating === null || rating === undefined || rating === 'None' || rating === 'null') {
+                displayRating = "N/A";
+                console.log("No rating available");
+            } else {
+                displayRating = Number(rating).toFixed(2);
+                console.log("Rating formatted:", displayRating);
+            }
+
+            if (typeof updateUserRating === 'function') {
+                updateUserRating(displayRating);
+            } else {
+                const ratingElement = document.getElementById("user-rating");
+                if (ratingElement) {
+                    ratingElement.textContent = displayRating;
+                    ratingElement.setAttribute('data-rating-loaded', 'true');
+                }
+            }
+
+        } catch (err) {
+            console.error("Error fetching rating:", err);
+
+            if (typeof updateUserRating === 'function') {
+                updateUserRating("Error");
+            } else {
+                const ratingElement = document.getElementById("user-rating");
+                if (ratingElement) {
+                    ratingElement.textContent = "Error";
+                    ratingElement.setAttribute('data-rating-loaded', 'true');
+                }
+            }
+        }
+    }
+
+    function toggleAddressForm() {
+        const form = document.getElementById('address-form');
+        form.classList.toggle('active');
+    }
+
+    async function saveAddress() {
+        const street = document.getElementById('street').value;
+        const city = document.getElementById('city').value;
+        const state = document.getElementById('state').value;
+        const zip = document.getElementById('zip').value;
+
+        if (!street || !city || !state || !zip) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        try {
+            const userResponse = await fetch('/api/users/current');
+            const userData = await userResponse.json();
+
+            let response;
+            if (userData.locationId) {
+                console.log(userData)
+                response = await fetch(`/api/locations/${userData.locationId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        street: street,
+                        city: city,
+                        state: state,
+                        zip: zip,
+                        country: 'USA'
+                    })
+                });
+            } else {
+                response = await fetch('/api/locations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        street: street,
+                        city: city,
+                        state: state,
+                        zip: zip,
+                        country: 'USA'
+                    })
+                });
+            }
+
+            if (response.ok) {
+                const result = await response.json();
+                alert('Address saved successfully!');
+                toggleAddressForm();
+            } else {
+                const error = await response.json();
+                alert('Error: ' + error.error);
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        }
+    }
+
+    async function logout() {
+        if (!confirm('Are you sure you want to sign out?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/auth/logout', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                window.location.href = '/';
+            } else {
+                alert('Logout failed. Please try again.');
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        }
+    }
+
+    function confirmDeleteAccount() {
+        const confirmText = prompt('This action cannot be undone. Type "DELETE" to confirm:');
+
+        if (confirmText === 'DELETE') {
+            if (confirm('Are you absolutely sure? Your account and all data will be permanently deleted.')) {
+                deleteAccount();
+            }
+        }
+    }
+
+    async function deleteAccount() {
+        try {
+            const response = await fetch('/api/user/delete', {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                alert('Your account has been deleted.');
+                window.location.href = '/';
+            } else {
+                alert('Failed to delete account. Please try again.');
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        }
+    }
+
+    function refreshUserDetail() {
+        if (typeof fetchUserDetail === 'function') {
+            fetchUserDetail();
+            fetchUserRating();
+        }
+    }
+
+    function viewRequestDetail(requestId) {
+        window.location.href = `/requests/${requestId}`;
+    }
+    function editRequest(requestId, event) {
+        event.stopPropagation();
+        window.location.href = `/requests/${requestId}`;
+    }
+</script>
+</html>

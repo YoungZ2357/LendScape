@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LendScape - Home</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1f2937;
+            background: #f9fafb;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.75rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: #4b5563;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-menu a:hover {
+            color: #667eea;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* User Info Display */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-name {
+            color: #4b5563;
+            font-weight: 500;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.125rem;
+            cursor: pointer;
+            position: relative;
+        }
+
+        /* Dropdown Menu */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            min-width: 200px;
+            display: none;
+            z-index: 1001;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 10px 16px;
+            color: #4b5563;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .dropdown-menu a:hover {
+            background: #f3f4f6;
+        }
+
+        .dropdown-menu .divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 5px 0;
+        }
+
+        .dropdown-menu .logout {
+            color: #dc3545;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        /* Main Container */
+        .main-container {
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Hero Welcome */
+        .hero-welcome {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 4rem 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .hero-welcome h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-user {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero-welcome p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn-white {
+            background: white;
+            color: #667eea;
+            padding: 1rem 2rem;
+        }
+
+        .btn-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* User Actions Section */
+        .user-actions {
+            padding: 3rem 2rem;
+            background: #f0f4ff;
+        }
+
+        .user-actions h3 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #1f2937;
+        }
+
+        .user-action-cards {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .user-action-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            text-decoration: none;
+            color: #4b5563;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .user-action-card:hover {
+            transform: translateY(-3px);
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .user-action-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .user-action-title {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        /* Section Header */
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            padding: 0 2rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+
+        .section-header p {
+            font-size: 1.125rem;
+            color: #6b7280;
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 5rem 2rem;
+            background: white;
+        }
+
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: #f9fafb;
+            padding: 2.5rem;
+            border-radius: 15px;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.375rem;
+            margin-bottom: 0.75rem;
+            color: #1f2937;
+        }
+
+        .feature-card p {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        /* How It Works Section */
+        .how-it-works {
+            padding: 5rem 2rem;
+            background: #f9fafb;
+        }
+
+        .steps-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .step-card {
+            text-align: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            transition: transform 0.3s;
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            margin: 0 auto 1.5rem;
+        }
+
+        .step-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            color: #1f2937;
+        }
+
+        .step-card p {
+            color: #6b7280;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            padding: 3rem 2rem;
+            background: white;
+            text-align: center;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Footer */
+        .footer {
+            background: #1f2937;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .footer p {
+            color: #9ca3af;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-welcome h1, .welcome-user {
+                font-size: 2rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.75rem;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+
+            .features-container {
+                grid-template-columns: 1fr;
+            }
+
+            .steps-container {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+            }
+
+            .user-name {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="/" class="logo">📦 LendScape</a>
+        <div class="nav-menu">
+            <a href="{{ url_for('items.search_page') }}">Browse Items</a>
+            {% if current_user %}
+            <a href="{{ url_for('items.create_item_page') }}">Create Item</a>
+            {% endif %}
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+        </div>
+        <div class="nav-buttons">
+            {% if current_user %}
+            <div class="user-info">
+                <span class="user-name">Hello, {{ current_user.firstName }}</span>
+                <div class="user-avatar" onclick="toggleDropdown(event)">
+                    {{ current_user.firstName[0] }}{{ current_user.lastName[0] if current_user.lastName else '' }}
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a href="{{ url_for('users.user_detail_page', userid=user_id) }}">My Profile</a>
+                        <a href="{{ url_for('items.create_item_page') }}">Create Item</a>
+                        <a href="/api/my-items">My Items</a>
+                        <a href="/api/orders">My Orders</a>
+                        <div class="divider"></div>
+                        <a onclick="logout()" class="logout">Logout</a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <a href="{{ url_for('auth.login_page') }}" class="btn btn-outline">Sign In</a>
+            <a href="{{ url_for('auth.login_page') }}" class="btn btn-primary">Get Started</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- Main Container -->
+<div class="main-container">
+
+    <!-- Hero Welcome -->
+    <section class="hero-welcome">
+        {% if current_user %}
+        <h1 class="welcome-user">Welcome back, {{ current_user.firstName }}!</h1>
+        {% else %}
+        <h1>Welcome to LendScape</h1>
+        {% endif %}
+        <p>Share what you have, borrow what you need. Build sustainable communities through sharing.</p>
+        <div class="hero-actions">
+            <a href="{{ url_for('items.search_page') }}" class="btn btn-white">Browse Items</a>
+            {% if current_user %}
+            <a href="{{ url_for('items.create_item_page') }}" class="btn btn-outline" style="color: white; border-color: white;">List Your Item</a>
+            {% else %}
+            <a href="{{ url_for('auth.login_page') }}" class="btn btn-outline" style="color: white; border-color: white;">List an Item</a>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- User Actions Section (显示在登录后) -->
+    {% if current_user %}
+    <section class="user-actions">
+        <h3>Quick Access</h3>
+        <div class="user-action-cards">
+            <a href="{{ url_for('items.create_item_page') }}" class="user-action-card">
+                <div class="user-action-icon">➕</div>
+                <div class="user-action-title">Create Item</div>
+            </a>
+            <a href="{{ url_for('users.user_detail_page', userid=user_id) }}?section=items" class="user-action-card">
+                <div class="user-action-icon">📦</div>
+                <div class="user-action-title">My Items</div>
+            </a>
+            <a href="{{ url_for('users.user_detail_page', userid=user_id) }}?section=settings" class="user-action-card">
+                <div class="user-action-icon">👤</div>
+                <div class="user-action-title">My Profile</div>
+            </a>
+            <a href="{{ url_for('users.user_detail_page', userid=user_id) }}?section=borrowing" class="user-action-card">
+                <div class="user-action-icon">📋</div>
+                <div class="user-action-title">My Orders</div>
+            </a>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="section-header">
+            <h2>Why Choose LendScape?</h2>
+            <p>Everything you need for community sharing</p>
+        </div>
+        <div class="features-container">
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>Secure & Trusted</h3>
+                <p>Verified users and secure transactions for peace of mind.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>Save Money</h3>
+                <p>Borrow instead of buying items you only need occasionally.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌱</div>
+                <h3>Eco-Friendly</h3>
+                <p>Reduce waste by sharing resources within your community.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Build Community</h3>
+                <p>Connect with neighbors through shared experiences.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Easy to Use</h3>
+                <p>Simple interface for listing and borrowing items.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Quick Access</h3>
+                <p>Find what you need nearby and get it quickly.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="section-header">
+            <h2>How It Works</h2>
+            <p>Start sharing in four simple steps</p>
+        </div>
+        <div class="steps-container">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Sign Up</h3>
+                <p>Create your free account and verify your identity.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Browse & Search</h3>
+                <p>Find items near you or list your own to share.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Request & Arrange</h3>
+                <p>Send a request and coordinate pickup with the owner.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h3>Use & Return</h3>
+                <p>Enjoy your borrowed item and return it on time.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="quick-actions">
+        <h3 style="margin-bottom: 2rem; color: #1f2937;">Ready to get started?</h3>
+        <div class="action-buttons">
+
+            {% if current_user %}
+            <a href="{{ url_for('items.search_page') }}" class="btn btn-primary">Browse Available Items</a>
+            {% else %}
+            <a href="{{ url_for('auth.login_page') }}" class="btn btn-outline">Create Your Account</a>
+            {% endif %}
+        </div>
+    </section>
+
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <p>© 2024 LendScape. Building sustainable communities through sharing.</p>
+</footer>
+
+<script>
+    // 切换下拉菜单
+    function toggleDropdown(event) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('dropdownMenu');
+        if (dropdown) {
+            dropdown.classList.toggle('show');
+        }
+    }
+
+    // 点击其他地方关闭下拉菜单
+    document.addEventListener('click', function() {
+        const dropdown = document.getElementById('dropdownMenu');
+        if (dropdown) {
+            dropdown.classList.remove('show');
+        }
+    });
+
+    // 登出功能
+    async function logout() {
+        if (!confirm('Are you sure you want to logout?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/auth/logout', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                window.location.href = '/';
+            } else {
+                alert('Logout failed. Please try again.');
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        }
+    }
+</script>
+
+</body>
+</html>
