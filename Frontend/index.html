@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lendscape - Authentication</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-size: 32px;
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        .toggle-container {
+            display: flex;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 30px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .toggle-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .welcome-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .welcome-screen.show {
+            display: block;
+        }
+
+        .welcome-screen h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .user-info {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .user-info-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .user-info-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .user-info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .user-info-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>Lendscape</h1>
+        </div>
+
+        <!-- Auth Forms -->
+        <div id="authSection">
+            <div class="toggle-container">
+                <button class="toggle-btn active" id="signupToggle">Sign Up</button>
+                <button class="toggle-btn" id="signinToggle">Sign In</button>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <!-- Signup Form -->
+            <div class="form-container active" id="signupForm">
+                <form id="signupFormElement">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" name="firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupEmail">Email</label>
+                        <input type="email" id="signupEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneNumber">Phone Number</label>
+                        <input type="tel" id="phoneNumber" name="phoneNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPassword">Password</label>
+                        <input type="password" id="signupPassword" name="password" required minlength="6">
+                    </div>
+                    <button type="submit" class="submit-btn" id="signupBtn">Create Account</button>
+                </form>
+            </div>
+
+            <!-- Signin Form -->
+            <div class="form-container" id="signinForm">
+                <form id="signinFormElement">
+                    <div class="form-group">
+                        <label for="signinEmail">Email</label>
+                        <input type="email" id="signinEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signinPassword">Password</label>
+                        <input type="password" id="signinPassword" name="password" required>
+                    </div>
+                    <button type="submit" class="submit-btn" id="signinBtn">Sign In</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Welcome Screen -->
+        <div class="welcome-screen" id="welcomeScreen">
+            <h2>Welcome! 👋</h2>
+            <div class="user-info" id="userInfo">
+                <div class="user-info-item">
+                    <div class="user-info-label">Name</div>
+                    <div class="user-info-value" id="displayName"></div>
+                </div>
+                <div class="user-info-item">
+                    <div class="user-info-label">Email</div>
+                    <div class="user-info-value" id="displayEmail"></div>
+                </div>
+                <div class="user-info-item">
+                    <div class="user-info-label">Phone Number</div>
+                    <div class="user-info-value" id="displayPhone"></div>
+                </div>
+                <div class="user-info-item" id="locationSection" style="display: none;">
+                    <div class="user-info-label">Location</div>
+                    <div class="user-info-value" id="displayLocation"></div>
+                </div>
+            </div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading" id="loadingState" style="display: none;">
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://nrvwkdppdznvorrwhogs.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ydndrZHBwZHpudm9ycndob2dzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0NjkxOTMsImV4cCI6MjA3OTA0NTE5M30.MUzz48qCj_fv01SrhgpWVp_MmdBbueclhQXeS7yqdpo';
+        
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // DOM Elements
+        const signupToggle = document.getElementById('signupToggle');
+        const signinToggle = document.getElementById('signinToggle');
+        const signupForm = document.getElementById('signupForm');
+        const signinForm = document.getElementById('signinForm');
+        const signupFormElement = document.getElementById('signupFormElement');
+        const signinFormElement = document.getElementById('signinFormElement');
+        const errorMessage = document.getElementById('errorMessage');
+        const authSection = document.getElementById('authSection');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loadingState = document.getElementById('loadingState');
+
+        // Toggle between signup and signin
+        signupToggle.addEventListener('click', () => {
+            signupToggle.classList.add('active');
+            signinToggle.classList.remove('active');
+            signupForm.classList.add('active');
+            signinForm.classList.remove('active');
+            clearError();
+        });
+
+        signinToggle.addEventListener('click', () => {
+            signinToggle.classList.add('active');
+            signupToggle.classList.remove('active');
+            signinForm.classList.add('active');
+            signupForm.classList.remove('active');
+            clearError();
+        });
+
+        // Error handling
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+        }
+
+        function clearError() {
+            errorMessage.textContent = '';
+            errorMessage.classList.remove('show');
+        }
+
+        // Display user info
+        async function displayUserInfo(userData) {
+            document.getElementById('displayName').textContent = `${userData.firstname} ${userData.lastname}`;
+            document.getElementById('displayEmail').textContent = userData.email;
+            document.getElementById('displayPhone').textContent = userData.phonenumber;
+            
+            // Check if user has location and redirect if not
+            if (!userData.locationid) {
+                window.location.href = 'add-location.html';
+                return;
+            }
+
+            // Fetch and display location if it exists
+            try {
+                const { data: locationData, error } = await supabaseClient
+                    .schema('lendscapev1')
+                    .from('Location')
+                    .select('address, city, state, postcode')
+                    .eq('locationid', userData.locationid)
+                    .single();
+
+                if (!error && locationData) {
+                    const locationSection = document.getElementById('locationSection');
+                    const displayLocation = document.getElementById('displayLocation');
+                    displayLocation.textContent = `${locationData.address}, ${locationData.city}, ${locationData.state} ${locationData.postcode}`;
+                    locationSection.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error fetching location:', error);
+            }
+            
+            authSection.style.display = 'none';
+            welcomeScreen.classList.add('show');
+        }
+
+        // Signup Handler
+        signupFormElement.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearError();
+
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const password = document.getElementById('signupPassword').value;
+
+            // Validation
+            if (!firstName || !lastName || !email || !phoneNumber || !password) {
+                showError('All fields are required');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters');
+                return;
+            }
+
+            const signupBtn = document.getElementById('signupBtn');
+            signupBtn.disabled = true;
+            signupBtn.textContent = 'Creating Account...';
+
+            try {
+                // Step 1: Create auth user with Supabase Auth
+                const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            first_name: firstName,
+                            last_name: lastName,
+                            phone_number: phoneNumber
+                        }
+                    }
+                });
+
+                if (authError) throw authError;
+
+                if (!authData.user) {
+                    throw new Error('User creation failed');
+                }
+
+                // Wait a moment for the session to be established
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Step 2: Hash password using PostgreSQL function
+                const { data: hashedData, error: hashError } = await supabaseClient
+                    .schema('lendscapev1')
+                    .rpc('hash_password', { password: password });
+
+                if (hashError) throw hashError;
+
+                // Step 3: Insert user data into custom User table
+                const { data: userData, error: insertError } = await supabaseClient
+                    .schema('lendscapev1')
+                    .from('User')
+                    .insert([{
+                        auth_id: authData.user.id,
+                        firstname: firstName,
+                        lastname: lastName,
+                        email: email,
+                        phonenumber: phoneNumber,
+                        pwd: hashedData,
+                        class: 'active',
+                        status: 'active'
+                    }])
+                    .select()
+                    .single();
+
+                if (insertError) throw insertError;
+
+                // Check location and redirect if needed, otherwise display welcome
+                await displayUserInfo(userData);
+
+            } catch (error) {
+                console.error('Signup error:', error);
+                console.error('Full error details:', JSON.stringify(error, null, 2));
+                if (error.message.includes('duplicate key') || error.message.includes('unique')) {
+                    showError('Email already exists. Please sign in instead.');
+                } else {
+                    showError(error.message || 'Signup failed. Please try again.');
+                }
+            } finally {
+                signupBtn.disabled = false;
+                signupBtn.textContent = 'Create Account';
+            }
+        });
+
+        // Signin Handler
+        signinFormElement.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearError();
+
+            const email = document.getElementById('signinEmail').value.trim();
+            const password = document.getElementById('signinPassword').value;
+
+            if (!email || !password) {
+                showError('Email and password are required');
+                return;
+            }
+
+            const signinBtn = document.getElementById('signinBtn');
+            signinBtn.disabled = true;
+            signinBtn.textContent = 'Signing In...';
+
+            try {
+                // Step 1: Sign in with Supabase Auth
+                const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
+
+                if (authError) throw authError;
+
+                // Step 2: Fetch user data from User table
+                const { data: userData, error: fetchError } = await supabaseClient
+                    .schema('lendscapev1')
+                    .from('User')
+                    .select('*')
+                    .eq('auth_id', authData.user.id)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                // Check location and redirect if needed, otherwise display welcome
+                await displayUserInfo(userData);
+
+            } catch (error) {
+                console.error('Signin error:', error);
+                showError('Invalid email or password');
+            } finally {
+                signinBtn.disabled = false;
+                signinBtn.textContent = 'Sign In';
+            }
+        });
+
+        // Logout Handler
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await supabaseClient.auth.signOut();
+                welcomeScreen.classList.remove('show');
+                authSection.style.display = 'block';
+                signupFormElement.reset();
+                signinFormElement.reset();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+
+        // Check if user is already logged in on page load
+        (async function checkAuth() {
+            loadingState.style.display = 'block';
+            authSection.style.display = 'none';
+
+            const { data: { session } } = await supabaseClient.auth.getSession();
+
+            if (session) {
+                try {
+                    const { data: userData, error } = await supabaseClient
+                        .schema('lendscapev1')
+                        .from('User')
+                        .select('*')
+                        .eq('auth_id', session.user.id)
+                        .single();
+
+                    if (!error && userData) {
+                        await displayUserInfo(userData);
+                    } else {
+                        authSection.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
+                    authSection.style.display = 'block';
+                }
+            } else {
+                authSection.style.display = 'block';
+            }
+
+            loadingState.style.display = 'none';
+        })();
+    </script>
+</body>
+</html>
