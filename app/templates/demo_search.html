@@ -545,6 +545,7 @@
         <a href="/" class="logo">📦 LendScape</a>
         <div class="nav-menu">
             <a href="{{ url_for('items.search_page') }}" class="active">Browse Items</a>
+            <a href="{{ url_for('items.map_page') }}">📍 Items Map</a>
             {% if current_user %}
             <a href="{{ url_for('items.create_item_page') }}">Create Item</a>
             {% endif %}
@@ -596,13 +597,7 @@
             </button>
         </div>
 
-        <div class="filter-tags">
-            <span class="filter-tag" onclick="quickSearch('tools')">🔧 Tools</span>
-            <span class="filter-tag" onclick="quickSearch('electronics')">📱 Electronics</span>
-            <span class="filter-tag" onclick="quickSearch('sports')">⚽ Sports</span>
-            <span class="filter-tag" onclick="quickSearch('books')">📚 Books</span>
-            <span class="filter-tag" onclick="quickSearch('outdoor')">🏕️ Outdoor</span>
-        </div>
+
     </section>
 
     <!-- Results Section -->

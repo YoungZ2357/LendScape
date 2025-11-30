@@ -14,10 +14,7 @@ from datetime import datetime
 @reviews_bp.route('/api/reviews/<int:order_id>', methods=['POST'])
 @login_required
 def make_review(order_id):
-    """
-    创建新的评论
-    只有借用者（borrower）可以对订单进行评论
-    """
+
     try:
 
         current_user_id = session.get('user_id')
@@ -75,22 +72,17 @@ def make_review(order_id):
 @reviews_bp.route('/api/reviews/order/<int:order_id>', methods=['GET'])
 @login_required
 def get_order_review(order_id):
-    """
-    获取特定订单的评论
-    """
+
     try:
-        # 获取订单
         order = Order.query.get(order_id)
         if not order:
             return jsonify({'error': 'Order not found'}), 404
 
-        # 获取评论
         review = Review.query.filter_by(orderId=order_id).first()
 
         if review:
             review_dict = review.to_dict()
 
-            # 添加评论者信息
             reviewer = User.query.get(review.userId)
             if reviewer:
                 review_dict['reviewer'] = {

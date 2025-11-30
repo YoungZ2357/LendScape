@@ -346,7 +346,7 @@ def delete_order(order_id):
 @orders_bp.route("/api/orders/item/<int:item_id>", methods=["GET"])
 @login_required
 def get_relating_order(item_id):
-
+    print("/api/order/item triggered")
     try:
         item = Item.query.get(item_id)
         if not item:
@@ -368,6 +368,7 @@ def get_relating_order(item_id):
         orders = []
         for order in paginated.items:
             order_dict = order.to_dict()
+            print(order_dict)
 
             renter = User.query.get(order.renterId)
             if renter:
@@ -403,7 +404,22 @@ def get_relating_order(item_id):
                 }
 
             orders.append(order_dict)
-
+        print({
+            'itemId': item_id,
+            'itemName': item.itemName,
+            'orders': orders,
+            'total': paginated.total,
+            'page': page,
+            'pages': paginated.pages,
+            'size': size,
+            'summary': {
+                'total_orders': paginated.total,
+                'pending': Order.query.filter_by(itemId=item_id, status='pending').count(),
+                'active': Order.query.filter_by(itemId=item_id, status='active').count(),
+                'complete': Order.query.filter_by(itemId=item_id, status='complete').count(),
+                'cancelled': Order.query.filter_by(itemId=item_id, status='cancelled').count()
+            }
+        })
         return jsonify({
             'itemId': item_id,
             'itemName': item.itemName,

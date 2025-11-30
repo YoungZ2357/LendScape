@@ -193,3 +193,25 @@ def calc_rating(userid):
     except Exception as e:
         print(f"Error calculating rating for user {userid}: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
+
+
+@users_bp.route('/api/users/all')
+def get_all_users():
+    try:
+        users = User.query.all()
+        users_data = []
+
+        for user in users:
+            user_data = {
+                'userId': user.userId,
+                'firstName': user.firstName,
+                'lastName': user.lastName,
+                'locationId': user.locationId
+            }
+            users_data.append(user_data)
+        return jsonify({
+            'users': users_data,
+            'count': len(users_data)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

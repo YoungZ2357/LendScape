@@ -1,0 +1,490 @@
+<!--This file was edited from /dev3/MapVisualization/map and integrated with backend functions-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Items Map - LendScape</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f9fafb;
+            color: #1f2937;
+        }
+
+        /* 复用导航栏样式 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.75rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: #4b5563;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            color: #667eea;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 地图专用样式 */
+        .container {
+            margin-top: 80px;
+            max-width: 1600px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .control-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .control-item label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .control-item select {
+            padding: 10px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .reset-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .map-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #6b7280;
+        }
+
+        .location-list {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .location-list h3 {
+            margin-bottom: 15px;
+            color: #1f2937;
+        }
+
+        .location-item {
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .location-item:hover {
+            background: #f9fafb;
+            border-color: #667eea;
+        }
+
+        .item-count {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-name {
+            color: #4b5563;
+            font-weight: 500;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.125rem;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            min-width: 200px;
+            display: none;
+            z-index: 1001;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 10px 16px;
+            color: #4b5563;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .dropdown-menu a:hover {
+            background: #f3f4f6;
+        }
+
+        .dropdown-menu .divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 5px 0;
+        }
+
+        .dropdown-menu .logout {
+            color: #dc3545;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="/" class="logo">📦 LendScape</a>
+        <div class="nav-menu">
+            <a href="{{ url_for('items.search_page') }}">Browse Items</a>
+            <a href="{{ url_for('items.map_page') }}" class="active">Items Map</a>
+            {% if current_user %}
+            <a href="{{ url_for('items.create_item_page') }}">Create Item</a>
+            {% endif %}
+            <a href="/#features">Features</a>
+            <a href="/#how-it-works">How It Works</a>
+        </div>
+        <div class="nav-buttons">
+            {% if current_user %}
+            <div class="user-info">
+                <span class="user-name">Hello, {{ current_user.firstName }}</span>
+                <div class="user-avatar" onclick="toggleDropdown(event)">
+                    {{ current_user.firstName[0] }}{{ current_user.lastName[0] if current_user.lastName else '' }}
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a href="{{ url_for('users.user_detail_page', userid=current_user.userId) }}">My Profile</a>
+                        <a href="{{ url_for('items.create_item_page') }}">Create Item</a>
+                        <a href="{{ url_for('users.user_detail_page', userid=current_user.userId) }}?section=items">My Items</a>
+                        <a href="{{ url_for('users.user_detail_page', userid=current_user.userId) }}?section=borrowing">My Orders</a>
+                        <div class="divider"></div>
+                        <a onclick="logout()" class="logout">Logout</a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <a href="{{ url_for('auth.login_page') }}" class="btn btn-outline">Sign In</a>
+            <a href="{{ url_for('auth.login_page') }}" class="btn btn-primary">Get Started</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- Main Container -->
+<div class="container">
+    <div class="header">
+        <h1>🗺️ Locations with Items</h1>
+        <p>Interactive map showing locations that have rental items</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="number" id="totalLocations">0</div>
+            <div class="label">Locations with Items</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" id="totalItems">0</div>
+            <div class="label">Total Items</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" id="uniqueCities">0</div>
+            <div class="label">Unique Cities</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" id="uniqueStates">0</div>
+            <div class="label">Unique States</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <div class="control-item">
+                <label>📦 Item:</label>
+                <select id="itemFilter">
+                    <option value="">All Items</option>
+                </select>
+            </div>
+            <div class="control-item">
+                <label>✅ Availability:</label>
+                <select id="availabilityFilter">
+                    <option value="">All</option>
+                    <option value="true">Available</option>
+                    <option value="false">Not Available</option>
+                </select>
+            </div>
+            <button onclick="resetFilters()" class="reset-btn">
+                🔄 Reset
+            </button>
+        </div>
+    </div>
+
+    <div class="map-container">
+        <div id="mapLoading" class="loading">Loading locations with items...</div>
+        <div id="map" style="display: none;"></div>
+    </div>
+
+    <div class="location-list" id="locationList" style="display: none;">
+        <h3>📋 Locations with Items</h3>
+        <div id="listContent"></div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script>
+    // Toggle dropdown menu
+    function toggleDropdown(event) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('dropdownMenu');
+        if (dropdown) {
+            dropdown.classList.toggle('show');
+        }
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function() {
+        const dropdown = document.getElementById('dropdownMenu');
+        if (dropdown) {
+            dropdown.classList.remove('show');
+        }
+    });
+
+    // Logout function
+    async function logout() {
+        if (!confirm('Are you sure you want to logout?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/auth/logout', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                localStorage.removeItem('user_id');
+                sessionStorage.removeItem('user_id');
+                window.location.href = '/';
+            } else {
+                alert('Logout failed. Please try again.');
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        }
+    }
+</script>
+</body>
+</html>
