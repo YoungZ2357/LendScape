@@ -59,6 +59,6 @@ The platform handles the entire rental process - from browsing and booking to re
 - Backend: Flask, Python 3.x
 - Database: PostgreSQL
 - Frontend: HTML/CSS/JavaScript
-- Deployment: local(temporary)
+- Deployment: render.com
 
 
