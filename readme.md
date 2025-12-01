@@ -36,16 +36,9 @@ The platform handles the entire rental process - from browsing and booking to re
 - **Rating System** - Two-way reviews for lenders and borrowers
 - **Order Management** - Track rental status from booking to return
 
-
-
-
-
-
 ## Tech Stack
 
 - Backend: Flask, Python 3.x
 - Database: PostgreSQL
 - Frontend: HTML/CSS/JavaScript
 - Deployment: render.com
-
-
