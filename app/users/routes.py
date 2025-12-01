@@ -3,7 +3,6 @@ from app import db
 from app.users import users_bp
 from sqlalchemy import or_, func
 from app.models import User, Location, Order, Item, Review
-
 from app.auth.routes import login_required
 
 @users_bp.route('/users/search', methods=['GET'])

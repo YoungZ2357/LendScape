@@ -14,7 +14,7 @@ def get_items():
 
     query = Item.query
     if kw:
-        query = query.filter(Item.itemName.like(f"%{kw}%"))
+        query = query.filter(Item.itemName.ilike(f"%{kw}%"))
 
     pagination = query.paginate(
         page=page,

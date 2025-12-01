@@ -665,9 +665,11 @@
         <div id="items-section" class="orders-section">
             <div class="content-header">
                 <h1 class="content-title">My Items</h1>
+                {% if logged_in_user == user_id %}
                 <button class="btn btn-primary" onclick="window.location.href='/items/create'">
                     <span>+</span> Add New Item
                 </button>
+                {% endif %}
             </div>
 
             <div id="ownership-results"></div>
