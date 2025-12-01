@@ -2,6 +2,7 @@
 
 A peer-to-peer lending and rental platform that connects people who want to lend items with those who need to borrow them.
 
+See a runnable demo here: https://lendscape.onrender.com
 ## Course Information
 
 **Date**: FALL 2025
