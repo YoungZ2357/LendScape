@@ -297,56 +297,6 @@
             margin-bottom: 20px;
         }
 
-        .timeline {
-            position: relative;
-            padding: 20px 0;
-        }
-
-        .timeline-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .timeline-dot {
-            width: 12px;
-            height: 12px;
-            background: #667eea;
-            border-radius: 50%;
-            position: relative;
-            z-index: 2;
-        }
-
-        .timeline-dot.inactive {
-            background: #ddd;
-        }
-
-        .timeline-content {
-            flex: 1;
-        }
-
-        .timeline-date {
-            font-size: 12px;
-            color: #666;
-        }
-
-        .timeline-title {
-            font-size: 14px;
-            font-weight: 500;
-            color: #333;
-        }
-
-        .timeline-line {
-            position: absolute;
-            left: 5px;
-            top: 30px;
-            bottom: 0;
-            width: 2px;
-            background: #ddd;
-        }
-
         .modal {
             display: none;
             position: fixed;
@@ -413,7 +363,6 @@
             justify-content: flex-end;
         }
 
-        /* Review Styles */
         .rating-selector {
             display: flex;
             gap: 10px;
@@ -421,18 +370,34 @@
             cursor: pointer;
         }
 
-        .rating-selector .star {
-            color: #ddd;
-            transition: color 0.2s;
+        .rating-selector {
+            display: flex;
+            gap: 10px;
+            font-size: 30px;
+            cursor: pointer;
+            user-select: none;
         }
 
-        .rating-selector .star:hover,
-        .rating-selector .star.active {
+        .rating-selector .star {
+            color: #ddd;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .rating-selector .star:hover {
+            transform: scale(1.2);
             color: #ffc107;
         }
 
         .rating-selector .star.filled {
             color: #ffc107;
+            animation: starPulse 0.3s ease;
+        }
+
+        @keyframes starPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
         }
 
         .review-section {
@@ -602,16 +567,6 @@
                 </div>
             </div>
 
-            <!-- Timeline -->
-            <div class="section">
-                <h2 class="section-title">
-                    <span class="section-icon">⏱️</span>
-                    Timeline
-                </h2>
-                <div class="timeline" id="timeline">
-                    <!-- Timeline items will be added dynamically -->
-                </div>
-            </div>
 
             <!-- Actions -->
             <div class="actions" id="actions-container">
@@ -709,16 +664,21 @@
     document.addEventListener("click", function(e) {
         if (e.target.classList.contains("star")) {
             const value = parseInt(e.target.getAttribute("data-value"));
-            const stars = document.querySelectorAll("#review-rating .star");
+            const stars = document.querySelectorAll("#rating-selector .star");
+
 
             stars.forEach(star => {
                 const starValue = parseInt(star.getAttribute("data-value"));
-                star.classList.toggle("filled", starValue <= value);
-                star.classList.toggle("active", starValue === value);
+                if (starValue <= value) {
+                    star.textContent = "★";
+                    star.classList.add("filled");
+                } else {
+                    star.textContent = "☆";
+                    star.classList.remove("filled");
+                }
             });
 
-            // store user selection
-            window.selectedRating = value;
+            document.getElementById("review-rating").value = value;
         }
     });
     document.addEventListener('DOMContentLoaded', function() {
@@ -798,6 +758,8 @@
             showError('An error occurred while loading the request');
         }
     }
+
+
 
     async function fetchUserRatings(ownerId, requesterId) {
         if (!ownerId || !requesterId || ownerId === 'undefined' || requesterId === 'undefined') {
@@ -990,7 +952,7 @@
         }
 
         // Display timeline
-        displayTimeline();
+
 
         // Display actions based on status and role
         displayActions();
@@ -998,55 +960,7 @@
         document.getElementById('main-content').style.display = 'block';
     }
 
-    function displayTimeline() {
-        const timeline = document.getElementById('timeline');
-        const events = [];
 
-        // Created event
-        if (requestData.createdAt) {
-            events.push({
-                date: new Date(requestData.createdAt),
-                title: 'Request created',
-                active: true
-            });
-        }
-
-        // Status change events
-        if (requestData.status === 'ACCEPTED' && requestData.updatedAt) {
-            events.push({
-                date: new Date(requestData.updatedAt),
-                title: 'Request accepted',
-                active: true
-            });
-        } else if (requestData.status === 'REJECTED' && requestData.updatedAt) {
-            events.push({
-                date: new Date(requestData.updatedAt),
-                title: 'Request rejected',
-                active: true
-            });
-        } else if (requestData.status === 'CANCELLED' && requestData.updatedAt) {
-            events.push({
-                date: new Date(requestData.updatedAt),
-                title: 'Request cancelled',
-                active: true
-            });
-        }
-
-        // Sort events by date
-        events.sort((a, b) => a.date - b.date);
-
-        // Render timeline
-        timeline.innerHTML = events.map((event, index) => `
-                <div class="timeline-item">
-                    ${index < events.length - 1 ? '<div class="timeline-line"></div>' : ''}
-                    <div class="timeline-dot ${event.active ? '' : 'inactive'}"></div>
-                    <div class="timeline-content">
-                        <div class="timeline-date">${formatDateTime(event.date)}</div>
-                        <div class="timeline-title">${event.title}</div>
-                    </div>
-                </div>
-            `).join('');
-    }
 
     function displayActions() {
         const container = document.getElementById('actions-container');
@@ -1193,6 +1107,7 @@
 
     function openReviewModal() {
         document.getElementById("review-modal").classList.add("active");
+        initializeRatingSelector();
     }
 
     function closeReviewModal() {
@@ -1247,7 +1162,18 @@
         }
     }
 
+    function initializeRatingSelector() {
+        const stars = document.querySelectorAll("#rating-selector .star");
 
+        stars.forEach((star, index) => {
+            if (index < 5) {
+                star.textContent = "★";
+                star.classList.add("filled");
+            }
+        });
+
+        document.getElementById("review-rating").value = "5";
+    }
     function displayReviewButton() {
         if (requestData.status !== "accepted") return;
 

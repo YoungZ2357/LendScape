@@ -65,6 +65,20 @@ def update_location(location_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@locations_bp.route('/api/locations/<int:location_id>', methods=['GET'])
-def get_location_detail(location_id):
-    pass
+
+@locations_bp.route('/api/locations/all')
+def get_all_locations():
+    try:
+        locations = Location.query.all()
+        locations_data = []
+
+        for location in locations:
+            loc_dict = location.to_dict()
+            locations_data.append(loc_dict)
+
+        return jsonify({
+            'locations': locations_data,
+            'count': len(locations_data)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

@@ -19,17 +19,13 @@ The platform handles the entire rental process - from browsing and booking to re
 #### For Borrowers
 
 - **Browse Local Items** - Search for items available in your area
-
 - **Verified Listings** - See photos, descriptions, and availability
-- **Secure Booking** - Reserve items with confirmed pickup/return times
 - **User Reviews** - Read ratings and feedback from previous renters
-- **Message Owners** - Communicate directly through the platform
 
 #### For Lenders
 
 - **List Your Items** - Create listings with photos and set availability
 - **Manage Availability** - Set when items are available for rent
-- **Track Orders** - Monitor active and upcoming rentals
 - **Share Resources** - Help your community by lending items you're not using
 - **Build Reputation** - Gain trust through positive reviews
 
@@ -37,28 +33,12 @@ The platform handles the entire rental process - from browsing and booking to re
 
 - **User Verification** - Multi-step verification process for safety
 - **Location-Based Search** - Find items near you
-- **Category Organization** - Browse by type: tools, electronics, sports, etc.
 - **Rating System** - Two-way reviews for lenders and borrowers
 - **Order Management** - Track rental status from booking to return
 
-
-
-## Technical Components
-
-
-### In Progress Components
-
-- Frontend
-    - Integrate map visualization
-    - Optimize UI
-
-
-
-### Tech Stack
+## Tech Stack
 
 - Backend: Flask, Python 3.x
 - Database: PostgreSQL
 - Frontend: HTML/CSS/JavaScript
 - Deployment: render.com
-
-

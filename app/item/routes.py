@@ -177,18 +177,7 @@ def items_detail_page(item_id):
 
 @items_bp.route("/api/items/<int:item_id>", methods=['PUT'])
 def update_item(item_id):
-    """
-    更新物品信息
 
-    JSON:
-    {
-        "itemName": "更新的物品名称",
-        "description": "更新的描述",
-        "price": 15.99,
-        "image_url": "新的图片URL",
-        "is_available": true
-    }
-    """
     try:
         # 获取要更新的物品
         item = Item.query.filter_by(itemId=item_id).first()
@@ -420,9 +409,8 @@ def create_batch_items():
             new_item.is_available = item_data.get('is_available', True)
 
             Item.query.session.add(new_item)
-            Item.query.session.flush()  # 刷新以获取自动生成的ID
+            Item.query.session.flush()
 
-            # 创建UserItem关联
             user_item = UserItem()
             user_item.userid = user_id
             user_item.itemid = new_item.itemId
@@ -430,7 +418,6 @@ def create_batch_items():
 
             created_items.append(new_item.to_dict())
 
-        # 提交所有更改
         Item.query.session.commit()
 
         return jsonify({
@@ -445,18 +432,11 @@ def create_batch_items():
 
 @items_bp.route("/api/items/fix-sequence", methods=['POST'])
 def fix_item_sequence():
-    """
-    修复Item表的自增序列（仅适用于PostgreSQL）
-    """
     try:
-        # 获取当前最大的itemId
         max_item = Item.query.order_by(Item.itemId.desc()).first()
 
         if max_item:
-            # 重置序列到最大ID + 1
             next_val = max_item.itemId + 1
-
-            # PostgreSQL特定的序列重置命令
             Item.query.session.execute(
                 text(f"""SELECT setval('lendscapev1."Item_itemid_seq"', :next_val, false)"""),
                 {"next_val": next_val}
@@ -486,3 +466,24 @@ def fix_item_sequence():
             "error": f"Failed to fix sequence: {str(e)}",
             "note": "This endpoint only works with PostgreSQL databases"
         }), 500
+
+
+@items_bp.route('/map')
+def map_page():
+
+    current_user = None
+    if 'user_id' in session:
+        current_user = User.query.get(session['user_id'])
+
+    return render_template('map.html', current_user=current_user)
+
+@items_bp.route('/api/items/all')
+def get_all_items():
+    try:
+        items = Item.query.all()
+        return jsonify({
+            'items': [item.to_dict() for item in items],
+            'count': len(items)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
