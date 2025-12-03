@@ -1243,3 +1243,74 @@ body {
         gap: 20px;
     }
 }
+
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* ownership-results作为网格的一部分 */
+#ownership-results {
+    display: contents; /* 让子元素参与父级grid布局 */
+}
+
+/* 空状态样式 */
+.empty-items {
+    grid-column: 1 / -1; /* 占据整行 */
+    text-align: center;
+    padding: 40px;
+}
+
+/* 确保add-item-card和item-card在同一网格系统中 */
+.add-item-card,
+.item-card {
+    /* 现有样式保持不变 */
+}
+
+/* 添加物品卡片样式 */
+.add-item-card {
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.add-item-card:hover {
+    border-color: #667eea;
+    background: #f0f4ff;
+    transform: translateY(-5px);
+}
+
+.add-item-content {
+    text-align: center;
+}
+
+.add-item-icon {
+    font-size: 48px;
+    color: #667eea;
+    margin-bottom: 10px;
+}
+
+.add-item-text {
+    color: #666;
+    font-weight: 500;
+}
+
+@media (max-width: 1024px) {
+    .items-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .items-grid {
+        grid-template-columns: 1fr;
+    }
+}

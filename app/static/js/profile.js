@@ -615,12 +615,12 @@ async function fetchUserStats() {
 
         console.log('Fetching stats for user:', userId);
 
+        // 修改这里: 将平均租赁时长接口从全局改为用户特定
         const [avgRentalResponse, activityResponse, successRateResponse] = await Promise.all([
-            fetch('/api/stats/user/average-rental-times'),
+            fetch(`/api/stats/user/average-rental-times/${userId}`),  // ✅ 修改: 添加 userId
             fetch(`/api/stats/user/activity-last-three-months/${userId}`),
             fetch(`/api/stats/user/lending-success-rate/${userId}`)
         ]);
-
 
         if (avgRentalResponse.ok) {
             const avgRentalData = await avgRentalResponse.json();
@@ -629,14 +629,12 @@ async function fetchUserStats() {
             }
         }
 
-
         if (activityResponse.ok) {
             const activityData = await activityResponse.json();
             if (activityData.success) {
                 updateActivityStats(activityData.data);
             }
         }
-
 
         if (successRateResponse.ok) {
             const successRateData = await successRateResponse.json();

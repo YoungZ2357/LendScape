@@ -368,60 +368,35 @@ function displayUserOrders(orders, type) {
 function displayUserOwnership(ownershipData) {
     console.log("displayUserOwnership triggered", ownershipData);
 
-    const containerDiv = document.getElementById('ownership-section') ||
-        document.getElementById('user-items') ||
-        document.getElementById('items-section');
-
-    if (!containerDiv) {
-        console.log("No ownership container found");
-        return;
-    }
     let resultsDiv = document.getElementById('ownership-results');
     if (!resultsDiv) {
-        resultsDiv = document.createElement('div');
-        resultsDiv.id = 'ownership-results';
-        containerDiv.appendChild(resultsDiv);
+        console.log("No ownership results container found");
+        return;
     }
 
-    let html = '<div class="items-grid">';
-
-    const isOwnProfile = document.getElementById('add-item-btn') &&
-        document.getElementById('add-item-btn').style.display !== 'none';
-
-    if (isOwnProfile) {
-        html += `
-            <div class="add-item-card" onclick="window.location.href='/items/create'">
-                <div class="add-item-content">
-                    <div class="add-item-icon">+</div>
-                    <div class="add-item-text">Add New Item</div>
-                </div>
-            </div>
-        `;
-    }
+    let html = '';
 
     if (!ownershipData || !ownershipData.data || ownershipData.data.length === 0) {
-        if (isOwnProfile) {
-            html += `
-                <div style="grid-column: span 3; text-align: center; padding: 40px;">
-                    <div class="empty-items-icon" style="font-size: 48px; opacity: 0.5;">📦</div>
-                    <div style="color: #666; margin-top: 10px;">No items yet</div>
-                    <div style="color: #999; font-size: 14px;">Click "Add New Item" to get started</div>
-                </div>
-            `;
-        } else {
-            html += `
-                <div style="grid-column: span 4; text-align: center; padding: 40px;">
-                    <div class="empty-items-icon" style="font-size: 48px; opacity: 0.5;">📦</div>
-                    <div style="color: #666; margin-top: 10px;">This user hasn't added any items yet</div>
-                </div>
-            `;
-        }
+        // 如果没有物品,显示空状态提示
+        html = `
+            <div class="empty-items" style="grid-column: span 3; text-align: center; padding: 40px;">
+                <div class="empty-items-icon" style="font-size: 48px; opacity: 0.5;">📦</div>
+                <div style="color: #666; margin-top: 10px;">No items yet</div>
+                <div style="color: #999; font-size: 14px;">Click "List an Item" to get started</div>
+            </div>
+        `;
     } else {
+        // 显示所有物品
         ownershipData.data.forEach(item => {
             const statusClass = item.is_available === true ? 'available' : 'rented';
             console.log("Loading Item Card")
             console.log(item)
             console.log(item.status)
+
+            // 检查是否是当前用户自己的物品
+            const isOwnProfile = document.getElementById('add-item-btn') &&
+                document.getElementById('add-item-btn').style.display !== 'none';
+
             html += `
                 <div class="item-card" data-item-id="${item.itemId}">
                     <div class="item-image">
@@ -443,7 +418,7 @@ function displayUserOwnership(ownershipData) {
                         </div>
                         <div class="item-footer">
                             <div class="item-price">
-                                ${item.price ? `$${item.price} <span>/day</span>` : 'Price not set'}
+                                ${item.price ? `${item.price} <span>/day</span>` : 'Price not set'}
                             </div>
                             ${isOwnProfile ? `
                             <div class="item-actions">
@@ -462,9 +437,9 @@ function displayUserOwnership(ownershipData) {
         });
     }
 
-    html += '</div>';
     resultsDiv.innerHTML = html;
 
+    // 分页逻辑
     if (ownershipData && ownershipData.data && ownershipData.data.length > 0) {
         displayPagination(ownershipData, (newPage, newSize) => {
             changeOwnershipPage(newPage, newSize);
