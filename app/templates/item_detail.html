@@ -819,7 +819,7 @@
 </div>
 
 <script>
-    // 从Flask模板获取用户信息
+
     const currentUserId = {{ user_id | tojson if user_id else 'null' }};
     const currentUser = {{ current_user.to_dict() | tojson if current_user else 'null' }};
 

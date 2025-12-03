@@ -6,7 +6,7 @@
 # -------------------------------------------------------------------------
 from flask import request, jsonify, session
 from app.order import orders_bp
-from app.models import User, Item, UserItem, Order, Request
+from app.models import User, Item, UserItem, Order, Request, StatusType
 from app import db
 from app.auth.routes import login_required
 from datetime import datetime
@@ -356,18 +356,31 @@ def get_relating_order(item_id):
         size = request.args.get('size', 10, type=int)
         status = request.args.get('status')
 
-        query = Order.query.filter_by(itemId=item_id)
+        # 使用枚举值进行过滤和统计
+        query = db.session.query(Order).join(
+            Request, Order.requestId == Request.requestId
+        ).filter(Order.itemId == item_id)
 
         if status:
-            query = query.filter_by(status=status)
+            # 如果 status 是字符串,转换为枚举进行过滤
+            try:
+                status_enum = StatusType[status] if hasattr(StatusType, status) else StatusType(status)
+                query = query.filter(Order.status == status_enum)
+            except (KeyError, ValueError):
+                query = query.filter(Order.status == status)
 
-        query = query.order_by(Order.createdAt.desc())
+        # 按 Request 的 createdAt 降序排序
+        query = query.order_by(Request.createdAt.desc())
 
         paginated = query.paginate(page=page, per_page=size, error_out=False)
 
         orders = []
         for order in paginated.items:
             order_dict = order.to_dict()
+            # 确保 status 是字符串而不是枚举
+            if 'status' in order_dict and order_dict['status'] is not None:
+                if hasattr(order_dict['status'], 'value'):
+                    order_dict['status'] = order_dict['status'].value
             print(order_dict)
 
             renter = User.query.get(order.renterId)
@@ -394,16 +407,19 @@ def get_relating_order(item_id):
                 'is_available': item.is_available
             }
 
-            related_request = Request.query.filter_by(orderId=order.orderId).first()
+            # 通过 Order 的 requestId 直接获取对应的 Request
+            related_request = Request.query.get(order.requestId)
             if related_request:
                 order_dict['request'] = {
                     'requestId': related_request.requestId,
                     'status': related_request.status.value if related_request.status else None,
                     'startDate': related_request.startDate.isoformat() if related_request.startDate else None,
-                    'endDate': related_request.endDate.isoformat() if related_request.endDate else None
+                    'endDate': related_request.endDate.isoformat() if related_request.endDate else None,
+                    'createdAt': related_request.createdAt.isoformat() if related_request.createdAt else None
                 }
 
             orders.append(order_dict)
+
         print({
             'itemId': item_id,
             'itemName': item.itemName,
@@ -414,12 +430,11 @@ def get_relating_order(item_id):
             'size': size,
             'summary': {
                 'total_orders': paginated.total,
-                'pending': Order.query.filter_by(itemId=item_id, status='pending').count(),
-                'active': Order.query.filter_by(itemId=item_id, status='active').count(),
-                'complete': Order.query.filter_by(itemId=item_id, status='complete').count(),
-                'cancelled': Order.query.filter_by(itemId=item_id, status='cancelled').count()
+                'pending': Order.query.filter_by(itemId=item_id, status=StatusType.pending).count(),
+                'complete': Order.query.filter_by(itemId=item_id, status=StatusType.complete).count()
             }
         })
+
         return jsonify({
             'itemId': item_id,
             'itemName': item.itemName,
@@ -430,10 +445,8 @@ def get_relating_order(item_id):
             'size': size,
             'summary': {
                 'total_orders': paginated.total,
-                'pending': Order.query.filter_by(itemId=item_id, status='pending').count(),
-                'active': Order.query.filter_by(itemId=item_id, status='active').count(),
-                'complete': Order.query.filter_by(itemId=item_id, status='complete').count(),
-                'cancelled': Order.query.filter_by(itemId=item_id, status='cancelled').count()
+                'pending': Order.query.filter_by(itemId=item_id, status=StatusType.pending).count(),
+                'complete': Order.query.filter_by(itemId=item_id, status=StatusType.complete).count()
             }
         }), 200
 

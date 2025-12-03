@@ -454,9 +454,11 @@
     <div class="nav-container">
         <a href="/" class="logo">📦 LendScape</a>
         <div class="nav-menu">
-            <a href="{{ url_for('items.search_page') }}">Browse Items</a>
+            <a href="{{ url_for('items.search_page') }}">Browse</a>
+            <a href="{{ url_for('items.map_page') }}"> Items Map</a>
             {% if current_user %}
             <a href="{{ url_for('items.create_item_page') }}">Create Item</a>
+            <a href="{{ url_for('stats.top_users_page')}}">Active Users</a>
             {% endif %}
             <a href="#features">Features</a>
             <a href="#how-it-works">How It Works</a>
@@ -470,8 +472,6 @@
                     <div class="dropdown-menu" id="dropdownMenu">
                         <a href="{{ url_for('users.user_detail_page', userid=user_id) }}">My Profile</a>
                         <a href="{{ url_for('items.create_item_page') }}">Create Item</a>
-                        <a href="/api/my-items">My Items</a>
-                        <a href="/api/orders">My Orders</a>
                         <div class="divider"></div>
                         <a onclick="logout()" class="logout">Logout</a>
                     </div>
