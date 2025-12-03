@@ -124,6 +124,7 @@ class Order(db.Model):
     orderId = db.Column('orderid', db.Integer, primary_key=True, autoincrement=True)
     renterId = db.Column('renterid', db.Integer, db.ForeignKey('lendscapev1.User.userid'))
     borrowerId = db.Column('borrowerid', db.Integer, db.ForeignKey('lendscapev1.User.userid'))
+    requestId = db.Column("requestid", db.Integer, db.ForeignKey('lendscapev1.Request.requestid'))
     reviewId = db.Column('reviewid', db.Integer, db.ForeignKey('lendscapev1.Review.reviewid'))
     itemId = db.Column('itemid', db.Integer, db.ForeignKey('lendscapev1.Item.itemid'))
     status = db.Column(db.Enum(StatusType))
@@ -135,6 +136,7 @@ class Order(db.Model):
             'orderId': self.orderId,
             'renterId': self.renterId,
             'borrowerId': self.borrowerId,
+            'requestId': self.requestId,
             'reviewId': self.reviewId,
             'itemId': self.itemId,
             'status': self.status if self.status else None
@@ -193,7 +195,6 @@ class Request(db.Model):
     requesterId = db.Column('requesterid', db.Integer, db.ForeignKey('lendscapev1.User.userid'), nullable=False)
     ownerId = db.Column('ownerid', db.Integer, db.ForeignKey('lendscapev1.User.userid'), nullable=False)
     itemId = db.Column('itemid', db.Integer, db.ForeignKey('lendscapev1.Item.itemid'), nullable=False)
-    orderId = db.Column('orderid', db.Integer, db.ForeignKey('lendscapev1.Order.orderid'))
     startDate = db.Column('startdate', db.DateTime, nullable=False)
     endDate = db.Column('enddate', db.DateTime, nullable=False)
     message = db.Column('message', db.Text)
@@ -212,7 +213,6 @@ class Request(db.Model):
             'requesterId': self.requesterId,
             'ownerId': self.ownerId,
             'itemId': self.itemId,
-            'orderId': self.orderId,
             'startDate': self.startDate.isoformat() if self.startDate else None,
             'endDate': self.endDate.isoformat() if self.endDate else None,
             'message': self.message,

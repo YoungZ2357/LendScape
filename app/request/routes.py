@@ -16,15 +16,13 @@ from datetime import datetime
 @login_required
 def get_requests(user_id):
     try:
-
         user = User.query.get(user_id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
 
         sent_requests = Request.query.filter_by(requesterId=user_id).all()
-        print(sent_requests)
         received_requests = Request.query.filter_by(ownerId=user_id).all()
-        print(received_requests)
+
         return jsonify({
             'sent': [req.to_dict() for req in sent_requests],
             'received': [req.to_dict() for req in received_requests],
@@ -49,6 +47,7 @@ def get_request_detail(request_id):
             user = User.query.get(current_user_id)
             if not user or user.userClass.value != 'admin':
                 return jsonify({'error': 'Forbidden'}), 403
+
         data = req.to_dict()
         data['logged_in_user'] = session.get('user_id') if "user_id" in session else None
         return jsonify(data), 200
@@ -62,14 +61,12 @@ def get_request_detail(request_id):
 def make_request():
     try:
         data = request.get_json()
-        print(data)
         required_fields = ['itemId', 'startDate', 'endDate']
         for field in required_fields:
             if field not in data:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
 
         current_user_id = session.get('user_id')
-
 
         item = Item.query.get(data['itemId'])
         if not item:
@@ -195,7 +192,6 @@ def accept_request(request_id):
         if req.ownerId != current_user_id:
             return jsonify({'error': 'Forbidden'}), 403
 
-        # 使用小写字符串比较，因为枚举值是小写的
         if req.status.value != 'pending':
             return jsonify({'error': 'Request is not pending'}), 409
 
@@ -203,19 +199,19 @@ def accept_request(request_id):
         if not item or not item.is_available:
             return jsonify({'error': 'Item is no longer available'}), 409
 
+        # 创建订单 - 修正:使用 StatusType 枚举而不是字符串
         new_order = Order(
             renterId=req.ownerId,
             borrowerId=req.requesterId,
+            requestId=req.requestId,  # 添加 requestId
             itemId=req.itemId,
-            status="pending"  #
+            status=StatusType.pending  # 使用枚举类型
         )
-        print(new_order.to_dict())
 
         db.session.add(new_order)
         db.session.flush()
 
         req.status = RequestStatus.ACCEPTED
-        req.orderId = new_order.orderId
         req.updatedAt = datetime.utcnow()
         item.is_available = False
 

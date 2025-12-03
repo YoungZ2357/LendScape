@@ -49,6 +49,9 @@ def create_app():
     from app.review import reviews_bp
     app.register_blueprint(reviews_bp)
 
+    from app.stats import stats_bp
+    app.register_blueprint(stats_bp)
+
     with app.app_context():
         db.create_all()
 
