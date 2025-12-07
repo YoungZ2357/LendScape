@@ -12,6 +12,7 @@ from sqlalchemy import func, case, desc, extract, and_
 from app.stats import stats_bp
 
 
+
 @stats_bp.route('/api/stats/user/average-rental-times', methods=['GET'])
 def get_user_average_rental_times():
     """
@@ -20,32 +21,29 @@ def get_user_average_rental_times():
     借出时间：renter作为renterId的订单持续时间
     """
     try:
-        # 获取所有已完成订单
-        completed_orders = Order.query.filter(
-            Order.status == StatusType.complete
-        ).all()
+        all_orders = Order.query.all()
 
-        if not completed_orders:
+        if not all_orders:
             return jsonify({
                 'success': True,
                 'message': 'No orders',
                 'data': {
-                    'average_borrow_time': 0,
-                    'average_lend_time': 0,
+                    'average_borrow_days': 0,
+                    'average_lend_days': 0,
                     'total_orders': 0
                 }
             })
 
+        # 计算借入时间统计（移除状态过滤）
         borrow_stats = db.session.query(
             func.avg(
                 extract('epoch', Request.endDate - Request.startDate) / 86400.0  # 转换为天数
             ).label('avg_borrow_days')
         ).join(
             Order, Order.requestId == Request.requestId
-        ).filter(
-            Order.status == StatusType.complete
         ).first()
 
+        # 计算借出时间统计（移除状态过滤）
         lend_stats = db.session.query(
             func.avg(
                 extract('epoch', Request.endDate - Request.startDate) / 86400.0  # 转换为天数
@@ -54,10 +52,9 @@ def get_user_average_rental_times():
             Order, Order.requestId == Request.requestId
         ).join(
             Item, Item.itemId == Request.itemId
-        ).filter(
-            Order.status == StatusType.complete
         ).first()
-
+        print(borrow_stats)
+        print(lend_stats)
         avg_borrow_days = round(float(borrow_stats[0]) if borrow_stats[0] else 0, 2)
         avg_lend_days = round(float(lend_stats[0]) if lend_stats[0] else 0, 2)
 
@@ -67,6 +64,92 @@ def get_user_average_rental_times():
             'data': {
                 'average_borrow_days': avg_borrow_days,
                 'average_lend_days': avg_lend_days,
+                'unit': 'days',
+                'total_orders': len(all_orders)
+            }
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Failed to fetch avg rental time: {str(e)}'
+        }), 500
+
+@stats_bp.route('/api/stats/user/average-rental-times/<int:user_id>', methods=['GET'])
+def get_user_average_rental_times_by_user(user_id):
+    """
+    获取指定用户的平均借入时间、借出时间
+    借入时间：该用户作为borrower的订单持续时间
+    借出时间：该用户作为renter的订单持续时间
+    计算该用户的所有订单（不限制状态）
+    """
+    try:
+        # 验证用户是否存在
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({
+                'success': False,
+                'message': f'User with id {user_id} not found'
+            }), 404
+
+        # 获取该用户的所有订单（作为borrower或renter）
+        user_orders = Order.query.filter(
+            (Order.borrowerId == user_id) | (Order.renterId == user_id)
+        ).all()
+
+        if not user_orders:
+            return jsonify({
+                'success': True,
+                'message': 'No orders for this user',
+                'data': {
+                    'user_id': user_id,
+                    'average_borrow_days': 0,
+                    'average_lend_days': 0,
+                    'total_borrow_orders': 0,
+                    'total_lend_orders': 0,
+                    'total_orders': 0
+                }
+            })
+
+        # 计算该用户作为borrower的平均借入时间
+        borrow_stats = db.session.query(
+            func.avg(
+                extract('epoch', Request.endDate - Request.startDate) / 86400.0
+            ).label('avg_borrow_days'),
+            func.count(Order.orderId).label('borrow_count')
+        ).join(
+            Order, Order.requestId == Request.requestId
+        ).filter(
+            Order.borrowerId == user_id
+        ).first()
+
+        # 计算该用户作为renter的平均借出时间
+        lend_stats = db.session.query(
+            func.avg(
+                extract('epoch', Request.endDate - Request.startDate) / 86400.0
+            ).label('avg_lend_days'),
+            func.count(Order.orderId).label('lend_count')
+        ).join(
+            Order, Order.requestId == Request.requestId
+        ).filter(
+            Order.renterId == user_id
+        ).first()
+
+        avg_borrow_days = round(float(borrow_stats[0]) if borrow_stats[0] else 0, 2)
+        avg_lend_days = round(float(lend_stats[0]) if lend_stats[0] else 0, 2)
+        borrow_count = borrow_stats[1] if borrow_stats[1] else 0
+        lend_count = lend_stats[1] if lend_stats[1] else 0
+
+        return jsonify({
+            'success': True,
+            'message': f'Avg rental times for user {user_id}',
+            'data': {
+                'user_id': user_id,
+                'average_borrow_days': avg_borrow_days,
+                'average_lend_days': avg_lend_days,
+                'total_borrow_orders': borrow_count,
+                'total_lend_orders': lend_count,
+                'total_orders': len(user_orders),
                 'unit': 'days'
             }
         })
@@ -76,6 +159,7 @@ def get_user_average_rental_times():
             'success': False,
             'message': f'Failed to fetch avg rental time: {str(e)}'
         }), 500
+
 
 
 @stats_bp.route('/api/stats/user/activity-last-three-months/<int:user_id>', methods=['GET'])

@@ -131,7 +131,19 @@
                 {% endif %}
             </div>
 
-            <div id="ownership-results"></div>
+            <div class="items-grid">
+                <!-- Add Item Card - Always visible -->
+                {% if logged_in_user == user_id %}
+                <div class="add-item-card" onclick="window.location.href='{{ url_for('items.create_item_page') }}'">
+                    <div class="add-item-content">
+                        <div class="add-item-icon">+</div>
+                        <div class="add-item-text">List an Item</div>
+                    </div>
+                </div>
+                {% endif %}
+                <!-- User items will be dynamically loaded here -->
+                <div id="ownership-results"></div>
+            </div>
         </div>
 
         <div id="borrowing-section" class="orders-section active">
@@ -294,7 +306,7 @@
                 <div class="stats-card">
                     <div class="stats-card-header">
                         <span class="stats-icon">📊</span>
-                        <h3>Activity (Last 3 Months)</h3>
+                        <h3>Activity</h3>
                     </div>
                     <div class="stats-card-body">
                         <div class="stats-row">
