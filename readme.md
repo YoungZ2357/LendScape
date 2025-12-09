@@ -63,9 +63,9 @@ And then visit the url in the console(typically with port 5000) or the link prov
 
 ## Screenshots
 See ./imgs
-![](imgs\why.png)
+![](./imgs/why.png)
 
-![](imgs\login.png)
+![](./imgs/login.png)
 
 ![](imgs\browsing.png)
 
