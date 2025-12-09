@@ -67,6 +67,6 @@ See ./imgs
 
 ![](./imgs/login.png)
 
-![](imgs\browsing.png)
+![](./imgs/browsing.png)
 
-![](imgs\map.png)
+![](.imgs/map.png)
