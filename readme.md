@@ -62,7 +62,7 @@
     And then visit the url in the console(typically with port 5000) or the link provided by render.com(For example, https://lendscape.onrender.com for this repository.). To make the app open to the Internet, "host" in run.py needs to be "0.0.0.0" to make all ports eligible to run this app
 
     ## Screenshots
-
+See ./imgs
     ![](imgs\why.png)
 
 ![](imgs\login.png)
