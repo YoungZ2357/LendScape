@@ -43,3 +43,16 @@ The platform handles the entire rental process - from browsing and booking to re
 - Database: PostgreSQL
 - Frontend: HTML/CSS/JavaScript
 - Deployment: render.com
+
+## Dependencies
+See requirements.txt
+
+## How to launch the App
+Command line and how to deploy on render.com:
+
+Run the following code or put the code in "start command"
+```
+python run.py
+```
+And then visit the url in the console(typically with port 5000) or the link provided by render.com(For example, https://lendscape.onrender.com for this repository.). To make the app open to the Internet, "host" in run.py needs to be "0.0.0.0" to make all ports eligible to run this app
+
