@@ -1,4 +1,4 @@
-# DS5110 Course Project - LendScape
+# LendScape
 
 A peer-to-peer lending and rental platform that connects people who want to lend items with those who need to borrow them.
 
